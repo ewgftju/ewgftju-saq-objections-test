@@ -1,15 +1,17 @@
-import { useState } from "react";
 import type { ReactNode } from "react";
+import { useDemoSession } from "../auth/useDemoSession";
+import { DEMO_USER, MAIN_MENU_URL } from "../config";
 import { ROLES } from "../data/constants";
 import type { Page, Role, Route } from "../types";
 import { formatDate } from "../utils/dateFormat";
-import { Icon } from "./ui";
+import SaqSidebar from "./SaqSidebar";
+import { Button } from "./ui";
+import "./AppShell.css";
 
 const navigation: { page: Page; label: string }[] = [
-  { page: "registry", label: "Возражения" },
+  { page: "registry", label: "Реестр возражений" },
   { page: "sessions", label: "Заседания комиссии" },
   { page: "processes", label: "Бизнес-процессы" },
-  { page: "sources", label: "Нормативная база" },
 ];
 
 export default function AppShell({
@@ -31,95 +33,118 @@ export default function AppShell({
   onClock: () => void;
   onReset: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div className={`app-shell ${expanded ? "expanded" : ""}`}>
-      <aside className="rail">
-        <button
-          className="brand"
-          onClick={() => onNavigate({ page: "registry" })}
-          aria-label="Главная SAQ"
-        >
-          <img src="/saq-logo.png" alt="SAQ" />
-          <span>
-            <strong>SAQ</strong>
-            <small>Смарт Аудит Казахстан</small>
-          </span>
-        </button>
-        <button
-          className="rail-menu"
-          aria-label={expanded ? "Свернуть меню" : "Развернуть меню"}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <Icon name="menu" />
-        </button>
-        <nav>
-          {navigation.map(({ page, label }) => (
-            <button
-              key={page}
-              title={label}
-              aria-label={label}
-              aria-current={
-                route.page === page ||
-                (route.page === "detail" && page === "registry")
-                  ? "page"
-                  : undefined
-              }
-              className={`rail-item ${route.page === page || (route.page === "detail" && page === "registry") ? "active" : ""}`}
-              onClick={() => onNavigate({ page })}
-            >
-              <Icon name={page} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="rail-bottom">
-          <span>SAQ</span>
-          <small>ДВГА</small>
-        </div>
-      </aside>
-      <header className="topbar">
-        <div>
-          <h1>Возражения</h1>
-          <p className="header-subtitle">
-            Департамент внутреннего государственного аудита
+  const session = useDemoSession();
+  const home = () => onNavigate({ page: "registry" });
+
+  if (session.signedOut) {
+    return (
+      <main className="saq-demo-exit">
+        <section>
+          <img src="/saq-logo.png" alt="SAQ" width="72" height="56" />
+          <h1>Вы вышли из модуля «Возражения»</h1>
+          <p>
+            Тестовые дела и результаты рассмотрения сохранены в этом браузере.
           </p>
+          <div>
+            <Button
+              primary
+              onClick={() => {
+                onRoleChange("work");
+                home();
+                session.login();
+              }}
+            >
+              Войти в демоверсию
+            </Button>
+            <a className="saq-header-action" href={MAIN_MENU_URL}>
+              Главное меню
+            </a>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <div className="app-shell objections-shell">
+      <SaqSidebar
+        onHome={home}
+        items={navigation.map(({ page, label }) => ({
+          page,
+          label,
+          active:
+            route.page === page ||
+            (route.page === "detail" && page === "registry"),
+          onClick: () => onNavigate({ page }),
+        }))}
+      />
+      <header className="topbar saq-topbar">
+        <div className="topbar-title">
+          <div>
+            <h1>Возражения</h1>
+            <p>Департамент внутреннего государственного аудита</p>
+          </div>
         </div>
         <div className="topbar-actions">
-          <button
-            className="date-control"
-            onClick={onClock}
-            title="Изменить дату демонстрации"
-          >
-            {formatDate(date)}
-          </button>
-          <label className="role-control">
-            <span>Роль в демо</span>
-            <select
-              value={role}
-              onChange={(event) => onRoleChange(event.target.value as Role)}
-            >
-              {Object.entries(ROLES).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="avatar" aria-hidden="true">
-            ДВ
+          <span className="language">RU</span>
+          <div className="saq-user">
+            <span>
+              {DEMO_USER.fullName}
+              <small>{DEMO_USER.position}</small>
+            </span>
+            <strong aria-hidden="true">{DEMO_USER.initials}</strong>
           </div>
+          <a className="saq-header-action" href={MAIN_MENU_URL}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="2" y="2" width="4" height="4" rx=".5" />
+              <rect x="10" y="2" width="4" height="4" rx=".5" />
+              <rect x="2" y="10" width="4" height="4" rx=".5" />
+              <rect x="10" y="10" width="4" height="4" rx=".5" />
+            </svg>
+            Главное меню
+          </a>
+          <button
+            type="button"
+            className="saq-header-action"
+            onClick={session.logout}
+          >
+            Выйти
+          </button>
         </div>
       </header>
       <main className="content">
-        <div className="demo-bar">
-          <span>
-            <strong>Тестовый модуль.</strong> Вымышленные обращения. Данные
-            сохраняются в этом браузере; отправки и подписи имитируются.
-          </span>
-          <button className="text-button" onClick={onReset}>
-            Сбросить демо
-          </button>
+        <div className="demo-bar saq-demo-bar">
+          <div className="saq-demo-controls">
+            <strong>Демонстрация</strong>
+            <label className="role-control">
+              <span>Роль в демо</span>
+              <select
+                value={role}
+                onChange={(event) => onRoleChange(event.target.value as Role)}
+              >
+                {Object.entries(ROLES).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="date-control"
+              onClick={onClock}
+              title="Изменить дату демонстрации"
+            >
+              Дата: {formatDate(date)}
+            </button>
+            <button type="button" className="text-button" onClick={onReset}>
+              Сбросить демо
+            </button>
+          </div>
+          <p>
+            Вымышленные обращения. Данные сохраняются в этом браузере; отправки
+            и подписи имитируются.
+          </p>
         </div>
         {children}
       </main>
