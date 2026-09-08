@@ -6,7 +6,7 @@ import { formatDate } from "../utils/dateFormat";
 import { Icon } from "./ui";
 
 const navigation: { page: Page; label: string }[] = [
-  { page: "registry", label: "Возражения и жалобы" },
+  { page: "registry", label: "Возражения" },
   { page: "sessions", label: "Заседания комиссии" },
   { page: "processes", label: "Бизнес-процессы" },
   { page: "sources", label: "Нормативная база" },
@@ -80,7 +80,7 @@ export default function AppShell({
       </aside>
       <header className="topbar">
         <div>
-          <h1>Возражения и жалобы</h1>
+          <h1>Возражения</h1>
           <p className="header-subtitle">
             Департамент внутреннего государственного аудита
           </p>

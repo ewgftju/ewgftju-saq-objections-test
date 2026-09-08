@@ -7,7 +7,7 @@ export function routeFromPath(path: string): Route {
       parts[2],
     )
       ? (parts[2] as CaseTab)
-      : "overview";
+      : "review";
     try {
       return { page: "detail", caseId: decodeURIComponent(parts[1]), tab };
     } catch {
@@ -21,6 +21,6 @@ export function routeFromPath(path: string): Route {
 
 export function pathForRoute(route: Route): string {
   if (route.page === "detail")
-    return `/cases/${encodeURIComponent(route.caseId || "")}/${route.tab || "overview"}`;
+    return `/cases/${encodeURIComponent(route.caseId || "")}/${route.tab || "review"}`;
   return route.page === "registry" ? "/cases" : `/${route.page}`;
 }

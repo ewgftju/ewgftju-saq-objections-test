@@ -1,6 +1,5 @@
 import { Button, Notice, PageHeading } from "../../../components/ui";
-import { OUTCOMES, ROLES, STATUS, TYPES } from "../../../data/constants";
-import { CONTROL_STEPS, STEPS } from "../../../data/workflowDefinitions";
+import { OUTCOMES, STATUS, TYPES } from "../../../data/constants";
 import type {
   Action,
   CaseDocument,
@@ -15,7 +14,7 @@ import {
   filingDeadline,
   reviewDeadline,
 } from "../services/deadlines";
-import { additionalActions, nextAction } from "../services/workflow";
+import ConsiderationProcess from "../components/ConsiderationProcess";
 
 function Fact({
   label,
@@ -107,7 +106,6 @@ export default function CaseWorkspace({
   onBack,
   onTab,
   onAction,
-  onRoleChange,
   onDocument,
   onUpload,
 }: {
@@ -116,16 +114,10 @@ export default function CaseWorkspace({
   role: Role;
   onBack: () => void;
   onTab: (tab: CaseTab) => void;
-  onAction: (action: Action) => void;
-  onRoleChange: (role: Role) => void;
+  onAction: (action: Action, role: Role) => void;
   onDocument: (kind: string, document?: CaseDocument) => void;
   onUpload: () => void;
 }) {
-  const next = nextAction(c);
-  const steps = c.type === "control" ? CONTROL_STEPS : STEPS;
-  const extras = additionalActions(c).filter(
-    (option) => option.action !== "upload",
-  );
   return (
     <>
       <div className="back-row">
@@ -151,7 +143,7 @@ export default function CaseWorkspace({
             {(
               [
                 ["overview", "Обращение"],
-                ["review", "Рассмотрение"],
+                ["review", "Процесс рассмотрения"],
                 ["documents", "Документы"],
                 ["history", "История"],
               ] as [CaseTab, string][]
@@ -171,6 +163,18 @@ export default function CaseWorkspace({
           <div className="card-body">
             {tab === "overview" && (
               <>
+                <div className="consideration-entry">
+                  <div>
+                    <strong>Рассмотрение обращения</strong>
+                    <p>
+                      Текущая задача, этапы и действия по делу доступны в
+                      процессе рассмотрения.
+                    </p>
+                  </div>
+                  <Button primary onClick={() => onTab("review")}>
+                    Открыть процесс рассмотрения
+                  </Button>
+                </div>
                 <div className="facts">
                   <Fact label="Вид обращения" value={TYPES[c.type]} />
                   <Fact label="Способ подачи" value={c.channel} />
@@ -237,12 +241,15 @@ export default function CaseWorkspace({
             )}
             {tab === "review" && (
               <>
-                {c.status === "received" && (
-                  <Notice>
-                    Начните с проверки допустимости и компетенции в правой
-                    колонке.
-                  </Notice>
-                )}
+                <ConsiderationProcess
+                  c={c}
+                  role={role}
+                  onAction={onAction}
+                  onHistory={() => onTab("history")}
+                />
+                <h3 className="form-section">
+                  Материалы и результаты рассмотрения
+                </h3>
                 {c.screening && (
                   <details>
                     <summary>Проверка при поступлении</summary>
@@ -390,50 +397,6 @@ export default function CaseWorkspace({
         <aside className="right-column">
           <section className="card right-card">
             <div className="card-head">
-              <h3>Следующее действие</h3>
-            </div>
-            <div className="card-body">
-              {next ? (
-                <>
-                  <strong>{next.label}</strong>
-                  <p className="muted">Ответственный: {ROLES[next.role]}</p>
-                  {role === next.role ? (
-                    <Button primary onClick={() => onAction(next.action)}>
-                      {next.label}
-                    </Button>
-                  ) : (
-                    <Button primary onClick={() => onRoleChange(next.role)}>
-                      Переключить роль: {ROLES[next.role]}
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <Notice tone="green">
-                  Рассмотрение завершено. История и документы сохранены.
-                </Notice>
-              )}
-              {extras.length > 0 && (
-                <details className="additional-actions">
-                  <summary>Дополнительные действия</summary>
-                  {extras.map((option) => (
-                    <Button
-                      key={option.action}
-                      onClick={() => {
-                        if (role !== option.role) onRoleChange(option.role);
-                        else onAction(option.action);
-                      }}
-                    >
-                      {role !== option.role
-                        ? `${option.label} · роль ${ROLES[option.role]}`
-                        : option.label}
-                    </Button>
-                  ))}
-                </details>
-              )}
-            </div>
-          </section>
-          <section className="card right-card">
-            <div className="card-head">
               <h3>Сроки</h3>
             </div>
             <div className="card-body">
@@ -501,21 +464,6 @@ export default function CaseWorkspace({
                 </a>
               </p>
             </div>
-          </section>
-          <section className="card right-card">
-            <div className="card-head">
-              <h3>Ход рассмотрения</h3>
-            </div>
-            <ol className="workflow-list">
-              {steps.map(([status, label]) => (
-                <li
-                  key={status}
-                  className={c.status === status ? "current" : ""}
-                >
-                  {label}
-                </li>
-              ))}
-            </ol>
           </section>
         </aside>
       </div>

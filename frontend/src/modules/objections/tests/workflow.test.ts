@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createElement } from "react";
+import { Children, createElement, isValidElement } from "react";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   initialState,
@@ -19,6 +20,7 @@ import { evaluateVotes, remainingIssues } from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
 import CasesList from "../pages/CasesList";
 import CaseWorkspace from "../pages/CaseWorkspace";
+import ConsiderationProcess from "../components/ConsiderationProcess";
 import { caseCsv } from "../../../utils/download";
 import { pathForRoute, routeFromPath } from "../routing";
 
@@ -418,7 +420,6 @@ test("совместимость сохранения, прямые ссылки
         onBack() {},
         onTab() {},
         onAction() {},
-        onRoleChange() {},
         onDocument() {},
         onUpload() {},
       }),
@@ -427,4 +428,68 @@ test("совместимость сохранения, прямые ссылки
   }
   state.cases[0].org = "=CMD()";
   assert.match(caseCsv(state.cases), /'=CMD\(\)/);
+});
+
+test("дело открывает процесс, а одно действие передаёт задачу вместе с ролью исполнителя", () => {
+  const h = harness();
+  const path = pathForRoute({ page: "detail", caseId: h.c.id });
+  assert.equal(routeFromPath(path).tab, "review");
+  assert.equal(
+    routeFromPath(`/cases/${encodeURIComponent(h.c.id)}`).tab,
+    "review",
+  );
+  assert.equal(
+    routeFromPath(path.replace(/review$/, "overview")).tab,
+    "overview",
+  );
+
+  function primaryAction(node: ReactNode): (() => void) | undefined {
+    if (
+      !isValidElement<{
+        children?: ReactNode;
+        primary?: boolean;
+        onClick?: () => void;
+      }>(node)
+    )
+      return;
+    if (node.props.primary) return node.props.onClick;
+    for (const child of Children.toArray(node.props.children)) {
+      const action = primaryAction(child);
+      if (action) return action;
+    }
+  }
+
+  let selected: { action: Action; role: Role } | undefined;
+  const process = () =>
+    ConsiderationProcess({
+      c: h.c,
+      role: "work",
+      onAction: (action, role) => {
+        selected = { action, role };
+      },
+      onHistory() {},
+    });
+  assert.match(renderToStaticMarkup(process()), /Начать рассмотрение/);
+  primaryAction(process())!();
+  assert.deepEqual(selected, { action: "screen", role: "work" });
+  screen(h);
+  h.run("request", "work", { text: "Позиция по спорным пунктам" });
+  assert.match(renderToStaticMarkup(process()), /Представить позицию ДВГА/);
+  primaryAction(process())!();
+  assert.deepEqual(selected, { action: "position", role: "dvga" });
+  assert.match(renderToStaticMarkup(process()), /будет выбрана роль «ДВГА»/);
+
+  const control = harness(2);
+  screen(control);
+  const controlHtml = renderToStaticMarkup(
+    createElement(ConsiderationProcess, {
+      c: control.c,
+      role: "work",
+      onAction() {},
+      onHistory() {},
+    }),
+  );
+  assert.match(controlHtml, /Рассмотреть передачу жалобы/);
+  assert.doesNotMatch(controlHtml, /Заседание, голоса и протокол/);
+  assert.doesNotMatch(controlHtml, /Позиции комиссии/);
 });

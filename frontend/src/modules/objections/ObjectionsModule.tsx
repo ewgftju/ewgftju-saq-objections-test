@@ -35,7 +35,7 @@ export default function ObjectionsModule() {
     setDialogError("");
   };
   const openCase = (c: ObjectionCase) =>
-    model.navigate({ page: "detail", caseId: c.id, tab: "overview" });
+    model.navigate({ page: "detail", caseId: c.id, tab: "review" });
 
   async function upload(file?: File) {
     if (!file || !c) return;
@@ -116,12 +116,14 @@ export default function ObjectionsModule() {
         (c ? (
           <CaseWorkspace
             c={c}
-            tab={model.route.tab || "overview"}
+            tab={model.route.tab || "review"}
             role={model.role}
             onBack={() => model.navigate({ page: "registry" })}
             onTab={(tab) => model.navigate({ ...model.route, tab })}
-            onAction={(action) => setDialog({ type: "action", action })}
-            onRoleChange={model.setRole}
+            onAction={(action, role) => {
+              model.setRole(role);
+              setDialog({ type: "action", action });
+            }}
             onDocument={(kind, document) =>
               setDialog({ type: "document", kind, document })
             }

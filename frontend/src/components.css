@@ -414,3 +414,180 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+.consideration-process {
+  margin-bottom: 28px;
+}
+.consideration-stages {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+  margin: 18px 0;
+  padding: 0;
+  gap: 8px;
+}
+.consideration-stages li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 8px;
+  border-top: 3px solid var(--line-soft);
+  background: #f7f9fb;
+  border-radius: 4px;
+  color: var(--muted);
+}
+.consideration-stages li[aria-current="step"] {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: #edf6fb;
+}
+.consideration-stage-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  height: 22px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+.consideration-stages li[aria-current="step"] .consideration-stage-number {
+  color: white;
+  border-color: var(--blue);
+  background: var(--blue);
+}
+.consideration-stages strong {
+  display: block;
+  margin: 2px 0 6px;
+  font-size: 13px;
+}
+.consideration-stages li div > span {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.consideration-task,
+.consideration-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid #bdd7e8;
+  border-left: 4px solid var(--blue);
+  background: #f3f9fc;
+  border-radius: 6px;
+}
+.consideration-entry {
+  margin-bottom: 24px;
+}
+.consideration-eyebrow {
+  display: block;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.consideration-task h4 {
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+.consideration-task p,
+.consideration-entry p {
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+.consideration-task .consideration-owner {
+  margin-top: 12px;
+}
+.consideration-task-action {
+  flex: 0 0 240px;
+}
+.consideration-task-action .button {
+  width: 100%;
+  min-height: 44px;
+  white-space: normal;
+  line-height: 1.4;
+}
+.consideration-task-action small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+.consideration-last-event {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.consideration-extras {
+  margin-top: 16px;
+}
+.consideration-extras summary {
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 14px;
+}
+.consideration-extras > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.consideration-extras .button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  gap: 4px;
+}
+.consideration-action-role {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+@media (max-width: 1200px) {
+  .consideration-task,
+  .consideration-entry {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .consideration-task-action {
+    flex-basis: auto;
+  }
+  .consideration-stages li {
+    flex-direction: column;
+  }
+}
+@media (max-width: 600px) {
+  .consideration-stages {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .consideration-stages li {
+    flex-direction: row;
+    align-items: center;
+    border-top: 0;
+    border-left: 3px solid var(--line-soft);
+    padding: 8px 10px;
+  }
+  .consideration-stages strong {
+    margin: 0;
+  }
+  .consideration-stages li:not([aria-current="step"]) div > span {
+    display: none;
+  }
+  .consideration-task,
+  .consideration-entry {
+    padding: 16px;
+  }
+}
