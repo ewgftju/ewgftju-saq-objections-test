@@ -598,7 +598,7 @@ export function applyAction(
         "supplement",
         note,
       );
-      note += ` Новый срок: ${reviewDeadline(c)}. Извещение о продлении зарегистрировано в демо.`;
+      note += ` Новый срок: ${reviewDeadline(c)}. Извещение о продлении учтено.`;
       break;
     case "pause":
       checked(form, "notified");
@@ -687,7 +687,7 @@ export function applyAction(
     date,
     actor: ROLES[role],
     title,
-    text: note || "Действие выполнено в демонстрационном режиме.",
+    text: note || "Действие учтено в деле.",
   });
   next.date = date;
   return next;

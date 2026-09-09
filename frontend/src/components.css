@@ -591,6 +591,3 @@
     padding: 16px;
   }
 }
-
-.training-fill { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:12px 0 20px; }
-.training-fill small { max-width:560px; color:#64748b; font-size:13px; }

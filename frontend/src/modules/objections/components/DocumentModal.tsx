@@ -159,7 +159,7 @@ export function DocumentContent({
           <p>
             <b>Подписи:</b>{" "}
             {snapshot.meeting?.signed
-              ? `Зафиксированы в демо ${formatDate(snapshot.meeting.signed)}`
+              ? `Зафиксированы ${formatDate(snapshot.meeting.signed)}`
               : "Ожидаются; это проект протокола."}
           </p>
         </>
@@ -205,7 +205,7 @@ export function DocumentContent({
               <p>
                 <b>Направление:</b> № {snapshot.delivery.number} от{" "}
                 {formatDate(snapshot.delivery.date)}. Квитанция{" "}
-                {snapshot.delivery.receipt} (демо).
+                {snapshot.delivery.receipt}.
               </p>
               <p>
                 <b>Порядок обжалования:</b> {snapshot.delivery.appealCourt}.{" "}
@@ -254,7 +254,7 @@ export function DocumentContent({
       )}
       <p className="document-footer">
         Сформировано в тестовом модуле SAQ.{" "}
-        {document?.author || "Демонстрационный заявитель"}.{" "}
+        {document?.author || "Заявитель"}.{" "}
         {formatDate(document?.date || c.filed)}.
       </p>
     </article>

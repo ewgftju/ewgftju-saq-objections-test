@@ -343,7 +343,7 @@ export default function CaseWorkspace({
                     <div>
                       <strong>{document.name}</strong>
                       <span className="subline">
-                        {formatDate(document.date)} · Демонстрационный документ
+                        {formatDate(document.date)} · Документ дела
                       </span>
                     </div>
                     <Button onClick={() => onDocument(document.kind)}>

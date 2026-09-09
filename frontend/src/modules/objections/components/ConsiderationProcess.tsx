@@ -155,8 +155,8 @@ export default function ConsiderationProcess({
             </Button>
             {role !== next.role && (
               <small>
-                В демо при открытии формы будет выбрана роль «{ROLES[next.role]}
-                ».
+                Действие выполняет {ROLES[next.role]}
+                .
               </small>
             )}
             <small>
@@ -202,7 +202,7 @@ export default function ConsiderationProcess({
             ))}
           </div>
           <p className="small muted">
-            В демонстрации форма открывается от имени указанного исполнителя.
+            Доступные действия зависят от этапа и исполнителя.
           </p>
         </details>
       )}

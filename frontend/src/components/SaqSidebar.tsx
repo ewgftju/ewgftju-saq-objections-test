@@ -104,7 +104,7 @@ export default function SaqSidebar({
           </div>
         </section>
       </nav>
-      <p className="saq-sidebar-version">SAQ · демонстрационная версия</p>
+      <p className="saq-sidebar-version">SAQ</p>
     </aside>
   );
 }

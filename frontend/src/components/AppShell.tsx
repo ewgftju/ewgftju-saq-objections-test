@@ -21,8 +21,6 @@ export default function AppShell({
   role,
   onRoleChange,
   onNavigate,
-  onClock,
-  onReset,
 }: {
   children: ReactNode;
   route: Route;
@@ -43,7 +41,7 @@ export default function AppShell({
           <img src="/saq-logo.png" alt="SAQ" width="72" height="56" />
           <h1>Вы вышли из модуля «Возражения»</h1>
           <p>
-            Тестовые дела и результаты рассмотрения сохранены в этом браузере.
+            Результаты рассмотрения сохранены.
           </p>
           <div>
             <Button
@@ -54,7 +52,7 @@ export default function AppShell({
                 session.login();
               }}
             >
-              Войти в демоверсию
+              Войти в модуль
             </Button>
             <a className="saq-header-action" href={MAIN_MENU_URL}>
               Главное меню
@@ -115,9 +113,8 @@ export default function AppShell({
       <main className="content">
         <div className="demo-bar saq-demo-bar">
           <div className="saq-demo-controls">
-            <strong>Демонстрация</strong>
             <label className="role-control">
-              <span>Роль в демо</span>
+              <span>Исполнитель</span>
               <select
                 value={role}
                 onChange={(event) => onRoleChange(event.target.value as Role)}
@@ -129,22 +126,9 @@ export default function AppShell({
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              className="date-control"
-              onClick={onClock}
-              title="Изменить дату демонстрации"
-            >
-              Дата: {formatDate(date)}
-            </button>
-            <button type="button" className="text-button" onClick={onReset}>
-              Сбросить демо
-            </button>
+            <span className="date-control">Дата учёта: {formatDate(date)}</span>
           </div>
-          <p>
-            Вымышленные обращения. Данные сохраняются в этом браузере; отправки
-            и подписи имитируются.
-          </p>
+
         </div>
         {children}
       </main>

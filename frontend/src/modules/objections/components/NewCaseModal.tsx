@@ -63,7 +63,7 @@ export default function NewCaseModal({
               channel:
                 type === "notice"
                   ? get("channel", "Исходная система")
-                  : "Кабинет SAQ (демо)",
+                  : "Кабинет SAQ",
               issuer: get("issuer", "Орган"),
               authority:
                 type === "control"
@@ -108,8 +108,7 @@ export default function NewCaseModal({
         }}
       >
         <Notice>
-          Демонстрационная регистрация. Используйте вымышленные сведения. Дата
-          регистрации определяется датой демо в шапке.
+          Укажите реквизиты обращения и оспариваемого документа. Дата регистрации определяется датой учёта.
         </Notice>
         <label className="field">
           <span>Вид обращения</span>
@@ -126,7 +125,7 @@ export default function NewCaseModal({
         </label>
         <div className="form-grid">
           {[
-            { name: "org", label: "Наименование объекта (демо)" },
+            { name: "org", label: "Наименование объекта" },
             { name: "bin", label: "БИН" },
             { name: "address", label: "Местонахождение" },
             { name: "applicant", label: "Заявитель / представитель" },

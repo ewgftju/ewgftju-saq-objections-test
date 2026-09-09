@@ -477,7 +477,7 @@ test("дело открывает процесс, а одно действие �
   assert.match(renderToStaticMarkup(process()), /Представить позицию ДВГА/);
   primaryAction(process())!();
   assert.deepEqual(selected, { action: "position", role: "dvga" });
-  assert.match(renderToStaticMarkup(process()), /будет выбрана роль «ДВГА»/);
+  assert.match(renderToStaticMarkup(process()), /Действие выполняет ДВГА/);
 
   const control = harness(2);
   screen(control);

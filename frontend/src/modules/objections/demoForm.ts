@@ -1,32 +1,21 @@
-// This helper only fills the visible training form. Submission still uses applyAction.
-export function fillTrainingForm(form: HTMLFormElement): Record<string, string> {
-  const examples: Record<string, string> = {
-    basis: "Учебный пример: реквизиты обращения, срок и компетенция органа проверены.",
-    evidence: "Учебные материалы: акт сверки, ведомость учёта и пояснение объекта.",
-    position: "Учебный пример: позиции членов комиссии представлены по каждому доводу.",
-    preliminary: "Учебный проект решения: оценить представленные документы и пересмотреть оспариваемые пункты в указанном объёме.",
-    subject: "Учебный пример: заявитель поддержал доводы и представил пояснение.",
-    note: "Учебный пример: пояснения рассмотрены, результат зафиксирован в материалах дела.",
-    reason: "Учебный пример: решение мотивировано результатами рассмотрения доводов и подтверждающих материалов.",
-    execution: "Учебный пример: результат рассмотрения учтён по пунктам исходного документа.",
+import type { Action, ObjectionCase } from "../../types";
+
+// Draft text belongs only to this prepared fictional record. Decisions and attestations stay manual.
+export function preparedActionValues(c: ObjectionCase, action: Action): Record<string, string> {
+  if (c.id !== "ВОЗ-2026-004") return {};
+  return {
+    basis: "Возражение подано руководителем предприятия в установленный срок. Оспаривается аудиторский отчёт АО-2026-0062; материалы относятся к компетенции апелляционной комиссии.",
+    position_a1: "Вывод основан на отсутствии исполнительной документации на дату проверки. Дополнительно представлены акты, подтверждающие объём работ на 8 400 000 тенге.",
+    position_a2: "По данным инвентарных карточек часть имущества отражена в учёте до завершения аудита. Требуется уточнить сумму по пункту 7.",
+    evidence: "Акты выполненных работ, исполнительная документация, оборотно-сальдовая ведомость и инвентарные карточки.",
+    analysis_a1: "Представленные акты и исполнительная документация подтверждают весь оспариваемый объём работ на 8 400 000 тенге. Предлагается исключить вывод по пункту 4.",
+    analysis_a2: "Инвентарные карточки подтверждают своевременное отражение имущества на 2 200 000 тенге. По оставшимся 2 200 000 тенге подтверждение отсутствует; вывод подлежит пересмотру в части суммы.",
+    legal_a1: "Условия договора и порядок документального подтверждения приёмки работ, указанные в пункте 4 аудиторского отчёта. Представленные акты устраняют основание спорного вывода.",
+    legal_a2: "Порядок документального отражения основных средств, указанный в пункте 7 аудиторского отчёта. Вывод сохраняется в отношении суммы, не подтверждённой регистрами учёта.",
+    position: "Члены комиссии ознакомились с доводами, позицией ДВГА и справкой рабочего органа. Предложения представлены по пунктам 4 и 7.",
+    preliminary: "По пункту 4 предлагается удовлетворить возражение; по пункту 7 — удовлетворить частично и сохранить сумму 2 200 000 тенге.",
+    subject: "Заявитель поддержал возражение и пояснил представленные акты и регистры учёта.",
+    note: action === "hearing-held" ? "Замечания заявителя рассмотрены. Дополнительных оснований для изменения проекта по пунктам 4 и 7 не установлено." : "Результат рассмотрения учтён: пункт 4 исключён; по пункту 7 сохранено обязательство на 2 200 000 тенге. Подтверждение: протокол комиссии и исходящее решение по обращению.",
+    appealCourt: "Специализированный межрайонный административный суд по подсудности",
   };
-  for (const element of Array.from(form.elements)) {
-    if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) || element.disabled || !element.name) continue;
-    if (element instanceof HTMLInputElement && element.type === "checkbox") {
-      if (!element.name.startsWith("recused_")) element.checked = true;
-    } else if (element instanceof HTMLSelectElement) {
-      if (element.name.startsWith("vote_")) element.value = "yes";
-      else if (!element.value) element.value = Array.from(element.options).find(option => option.value)?.value ?? "";
-    } else if (!element.value.trim() && element.type !== "file") {
-      element.value = element.type === "number" ? "0" : examples[element.name]
-        ?? (element.name.startsWith("position_") ? "Учебная позиция ДВГА: вывод сопоставлен с актами и учётными данными."
-        : element.name.startsWith("analysis_") ? "Учебный анализ: довод сопоставлен с исходным выводом, позицией ДВГА и представленными доказательствами."
-        : element.name.startsWith("legal_") ? "Учебный пример: применимое основание приведено в материалах этого пункта."
-        : "Учебный пример: результат и подтверждающие материалы зафиксированы.");
-    }
-  }
-  const values: Record<string, string> = {};
-  for (const [key, value] of new FormData(form)) values[key] = String(value);
-  form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach(input => { values[input.name] = input.checked ? "on" : ""; });
-  return values;
 }

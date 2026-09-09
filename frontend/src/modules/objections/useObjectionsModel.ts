@@ -1,3 +1,4 @@
+import { seed } from "../../data/objections";
 import { useEffect, useState } from "react";
 import {
   createDemoRepository,
@@ -25,7 +26,12 @@ export function useObjectionsModel() {
       };
     }
   });
-  const [state, setState] = useState(loaded.state);
+  const [state, setState] = useState(() => {
+    loaded.state = { ...loaded.state, cases: loaded.state.cases.map(c => ["ВОЗ-2026-001", "ВОЗ-2026-002", "ЖАЛ-2026-003"].includes(c.id) ? { ...c, org:c.org.replace(" — Демо", ""), applicant:c.applicant.replace(" (демо)", ""), address:c.address.replace(", демонстрационный адрес", "") } : c) };
+    if (loaded.state.cases.some(c => c.id === "ВОЗ-2026-004")) return loaded.state;
+    const prepared = { ...seed().find(c => c.id === "ВОЗ-2026-002")!, id: "ВОЗ-2026-004" };
+    return { ...loaded.state, cases: [prepared, ...loaded.state.cases] };
+  });
   useEffect(() => {
     const handler = () => setRoute(routeFromPath(window.location.pathname));
     window.addEventListener("popstate", handler);
@@ -50,7 +56,7 @@ export function useObjectionsModel() {
   function perform(caseId: string, action: Action, form: FormData) {
     commit(
       applyAction(state, caseId, action, role, form),
-      "Действие зафиксировано в демо",
+      "Действие сохранено",
     );
   }
   return {
