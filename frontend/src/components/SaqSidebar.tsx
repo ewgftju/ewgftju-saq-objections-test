@@ -46,7 +46,7 @@ export default function SaqSidebar({
           aria-label="Главная страница модуля «Возражения»"
         >
           <img
-            src="/saq-logo.png"
+            src="/saq-logo.png?v=20260909"
             alt="Логотип SAQ"
             width="56"
             height="44"
@@ -108,3 +108,4 @@ export default function SaqSidebar({
     </aside>
   );
 }
+
