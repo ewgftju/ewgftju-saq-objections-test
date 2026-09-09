@@ -159,8 +159,8 @@ export function actionForm(
           select(
             `proposal_${point.id}`,
             "Проект результата",
-            Object.entries(OUTCOMES),
-            point.proposal || "accept",
+            [["", "Выберите результат"], ...Object.entries(OUTCOMES)],
+            point.proposal || "",
           ),
         );
         if ((values[`proposal_${point.id}`] || point.proposal) === "partial")
