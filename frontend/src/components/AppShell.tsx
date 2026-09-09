@@ -38,7 +38,7 @@ export default function AppShell({
     return (
       <main className="saq-demo-exit">
         <section>
-          <img src="/saq-logo.png?v=20260909" alt="SAQ" width="72" height="56" />
+          <img src="/saq-logo.png?v=20260909-audit" alt="SAQ" width="72" height="56" />
           <h1>Вы вышли из модуля «Возражения»</h1>
           <p>
             Результаты рассмотрения сохранены.
