@@ -1,3 +1,4 @@
+import { fillTrainingForm } from "../demoForm";
 import { useState } from "react";
 import type { Action, ObjectionCase } from "../../../types";
 import { Button, Modal, Notice } from "../../../components/ui";
@@ -204,6 +205,7 @@ export default function ActionModal({
         }}
       >
         {definition.note && <Notice>{definition.note}</Notice>}
+        <div className="training-fill"><Button onClick={event => { setValues(fillTrainingForm(event.currentTarget.form!)); setError(""); }}>Заполнить учебный пример</Button><small>Заполняет поля и подтверждения вымышленного обращения. Проверьте результат и нажмите «Зафиксировать действие».</small></div>
         {definition.fields.map((field) => (
           <Field key={field.name} field={field} />
         ))}
