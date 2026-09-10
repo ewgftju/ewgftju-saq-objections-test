@@ -194,11 +194,15 @@ export default function ObjectionsModule() {
                 action === "send-request-approval" ||
                 action === "approve-request" ||
                 action === "approve-certificate" ||
-                action === "send-certificate-to-commission"
+                action === "send-certificate-to-commission" ||
+                action === "members"
               ) {
                 const form = new FormData();
                 if (action === "approve-request") {
                   form.set("approved", "on");
+                }
+                if (action === "members") {
+                  form.set("meetingConducted", "on");
                 }
                 const next = applyAction(
                   model.state,
@@ -215,6 +219,8 @@ export default function ObjectionsModule() {
                       ? "Справка согласована"
                       : action === "send-certificate-to-commission"
                         ? "Справка и документы направлены членам АК"
+                        : action === "members"
+                          ? "Заседание по данному делу проведено"
                         : "Запрос направлен на согласование",
                 );
                 return;
