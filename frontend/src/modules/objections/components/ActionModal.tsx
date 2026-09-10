@@ -182,7 +182,11 @@ export default function ActionModal({
     <Modal
       title={definition.title}
       onClose={onClose}
-      wide={action === "vote" || action === "request"}
+      wide={
+        action === "vote" ||
+        action === "request" ||
+        action === "fill-request-response"
+      }
     >
       <form
         onChange={(event) => {
@@ -262,6 +266,63 @@ export default function ActionModal({
               />
             </div>
           </>
+        ) : action === "fill-request-response" ? (
+          <>
+            <div className="request-modal-details">
+              <div>
+                <span>Автор</span>
+                <b>ДВГА/КВГА</b>
+              </div>
+              <div>
+                <span>Печатная форма</span>
+                <b>Приложение № 1 к запросу</b>
+              </div>
+            </div>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <div className="request-modal-tabs" role="tablist">
+              <button
+                type="button"
+                className={requestTab === "form" ? "active" : ""}
+                onClick={() => setRequestTab("form")}
+              >
+                Электронная форма
+              </button>
+              <button
+                type="button"
+                className={requestTab === "print" ? "active" : ""}
+                onClick={() => setRequestTab("print")}
+              >
+                Печатная форма
+              </button>
+            </div>
+            <div hidden={requestTab !== "form"}>
+              {definition.fields.map((field) => (
+                <Field key={field.name} field={field} />
+              ))}
+              <label className="field">
+                <span>Подтверждающие документы</span>
+                <input
+                  type="file"
+                  name="responseFiles"
+                  accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
+                  multiple
+                />
+                <small>Можно вложить несколько файлов до 2 МБ каждый.</small>
+              </label>
+            </div>
+            <div hidden={requestTab !== "print"} className="request-print-preview">
+              <DocumentContent
+                c={c}
+                kind="request-appendix"
+                appendixPreview={Object.fromEntries(
+                  disputed(c).map((point) => [
+                    point.id,
+                    values[`authorityResponse_${point.id}`] || point.position || "",
+                  ]),
+                )}
+              />
+            </div>
+          </>
         ) : action === "position" ? (
           <>
             <Notice tone="amber">
@@ -319,18 +380,6 @@ export default function ActionModal({
             {definition.fields.map((field) => (
               <Field key={field.name} field={field} />
             ))}
-            {action === "fill-request-response" && (
-              <label className="field">
-                <span>Подтверждающие документы</span>
-                <input
-                  type="file"
-                  name="responseFiles"
-                  accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
-                  multiple
-                />
-                <small>Можно вложить несколько файлов до 2 МБ каждый.</small>
-              </label>
-            )}
           </>
         )}
         {action === "vote" && (
