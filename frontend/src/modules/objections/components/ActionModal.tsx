@@ -188,6 +188,29 @@ export default function ActionModal({
     values.deadline ||
     definition.fields.find((field) => field.name === "deadline")?.value ||
     `${date}T18:00`;
+  const protocolMembers = c.members.map((member) => ({
+    ...member,
+    present:
+      values[`present_${member.id}`] === undefined
+        ? member.present
+        : values[`present_${member.id}`] === "on",
+    recused:
+      values[`recused_${member.id}`] === undefined
+        ? member.recused
+        : values[`recused_${member.id}`] === "on",
+    reason: values[`reason_${member.id}`] || member.reason,
+  }));
+  const protocolVotes = Object.fromEntries(
+    disputed(c).map((point) => [
+      point.id,
+      Object.fromEntries(
+        c.members.map((member) => [
+          member.id,
+          values[`vote_${point.id}_${member.id}`] || "",
+        ]),
+      ),
+    ]),
+  );
   return (
     <Modal
       title={definition.title}
@@ -442,6 +465,75 @@ export default function ActionModal({
               />
             </div>
           </>
+        ) : action === "vote" ? (
+          <>
+            <div className="request-modal-details">
+              <div>
+                <span>Автор</span>
+                <b>Апелляционная комиссия</b>
+              </div>
+              <div>
+                <span>Печатная форма</span>
+                <b>Протокол по шаблону</b>
+              </div>
+            </div>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <div className="request-modal-tabs" role="tablist">
+              <button
+                type="button"
+                className={requestTab === "form" ? "active" : ""}
+                onClick={() => setRequestTab("form")}
+              >
+                Электронная форма
+              </button>
+              <button
+                type="button"
+                className={requestTab === "print" ? "active" : ""}
+                onClick={() => setRequestTab("print")}
+              >
+                Печатная форма
+              </button>
+            </div>
+            <div hidden={requestTab !== "form"}>
+              {definition.fields.map((field) => (
+                <Field key={field.name} field={field} />
+              ))}
+              <Button
+                onClick={(event) => {
+                  const form = event.currentTarget.form!;
+                  form
+                    .querySelectorAll<HTMLSelectElement>('select[name^="vote_"]')
+                    .forEach((select) => {
+                      select.value = "yes";
+                    });
+                  setValues(
+                    Object.fromEntries(
+                      [...new FormData(form).entries()].map(([key, value]) => [
+                        key,
+                        String(value),
+                      ]),
+                    ),
+                  );
+                }}
+              >
+                Единогласно за проекты
+              </Button>
+              <VotingFields c={c} values={values} />
+            </div>
+            <div hidden={requestTab !== "print"} className="request-print-preview">
+              <DocumentContent
+                c={c}
+                kind="protocol"
+                protocolPreview={{
+                  date: values.protocolDate || date,
+                  number: values.number || `ПР-${c.id}`,
+                  audio: values.audio || "",
+                  members: protocolMembers,
+                  votes: protocolVotes,
+                }}
+              />
+            </div>
+          </>
         ) : action === "position" ? (
           <>
             <Notice tone="amber">
@@ -499,31 +591,6 @@ export default function ActionModal({
             {definition.fields.map((field) => (
               <Field key={field.name} field={field} />
             ))}
-          </>
-        )}
-        {action === "vote" && (
-          <>
-            <Button
-              onClick={(event) => {
-                const form = event.currentTarget.form!;
-                form
-                  .querySelectorAll<HTMLSelectElement>('select[name^="vote_"]')
-                  .forEach((select) => {
-                    select.value = "yes";
-                  });
-                setValues(
-                  Object.fromEntries(
-                    [...new FormData(form).entries()].map(([key, value]) => [
-                      key,
-                      String(value),
-                    ]),
-                  ),
-                );
-              }}
-            >
-              Единогласно за проекты
-            </Button>
-            <VotingFields c={c} values={values} />
           </>
         )}
         {error && (
