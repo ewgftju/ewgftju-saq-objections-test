@@ -18,6 +18,8 @@ export const STATUS = {
   request_approval: "Запрос на согласовании",
   request_approved: "Запрос согласован",
   materials: "Анализ материалов",
+  certificate_approval: "Справка на согласовании",
+  certificate_approved: "Справка согласована",
   circulated: "Позиции членов комиссии",
   hearing: "Подготовка заслушивания",
   hearing_ready: "Заслушивание",
