@@ -88,7 +88,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
     circulated: {
       action: "members",
       label: "Заседание по данному делу проведено",
-      role: "commission",
+      role: "work",
     },
     hearing: {
       action: "hearing",
