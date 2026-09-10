@@ -1,9 +1,17 @@
 export type CaseType = "notice" | "audit" | "control";
-export type Role = "work" | "dvga" | "commission" | "subject" | "higher";
+export type Role =
+  | "work"
+  | "director"
+  | "dvga"
+  | "commission"
+  | "subject"
+  | "higher";
 export type CaseStatus =
   | "received"
   | "accepted"
   | "requested"
+  | "request_approval"
+  | "request_approved"
   | "materials"
   | "circulated"
   | "hearing"
@@ -222,6 +230,9 @@ export interface Route {
 export type Action =
   | "screen"
   | "request"
+  | "send-request-approval"
+  | "approve-request"
+  | "fill-request-response"
   | "position"
   | "analysis"
   | "members"
