@@ -190,6 +190,17 @@ export default function ObjectionsModule() {
             onBack={() => model.navigate({ page: "registry" })}
             onTab={(tab) => model.navigate({ ...model.route, tab })}
             onAction={(action, role) => {
+              if (action === "send-request-approval") {
+                const next = applyAction(
+                  model.state,
+                  c.id,
+                  action,
+                  role,
+                  new FormData(),
+                );
+                model.commit(next, "Запрос направлен на согласование");
+                return;
+              }
               model.setRole(role);
               setDialog({ type: "action", action });
             }}
