@@ -103,6 +103,7 @@ export interface CaseDocument {
   author: string;
   dataUrl?: string;
   filename?: string;
+  requestId?: string;
   snapshot?: {
     issues: ViolationPoint[];
     result: CaseResult | null;
@@ -112,6 +113,15 @@ export interface CaseDocument {
     hearing: Hearing | null;
     delivery: Delivery | null;
   };
+}
+
+export interface CaseRequest {
+  id: string;
+  recipient: string;
+  date: string;
+  text: string;
+  deadline: string;
+  responded?: string;
 }
 
 export interface HistoryEvent {
@@ -153,13 +163,7 @@ export interface ObjectionCase {
   extensionDays: number;
   pauseDays: number;
   documents: CaseDocument[];
-  requests: {
-    recipient: string;
-    date: string;
-    text: string;
-    deadline: string;
-    responded?: string;
-  }[];
+  requests: CaseRequest[];
   members: CommissionMember[];
   history: HistoryEvent[];
   screening?: string;
