@@ -16,9 +16,15 @@ const OBJECTION_STAGES: ProcessStage[] = [
     statuses: ["received"],
   },
   {
-    label: "Запрос в ДВГА/КВГА и др.",
+    label: "Формирование запроса в ДВГА/КВГА, уполномоченные органы и др.",
     description: "Подготовка и направление запросов, получение ответов",
-    statuses: ["accepted", "requested", "materials"],
+    statuses: [
+      "accepted",
+      "requested",
+      "request_approval",
+      "request_approved",
+      "materials",
+    ],
   },
   {
     label: "Подготовка",
@@ -44,9 +50,16 @@ const CONTROL_STAGES: ProcessStage[] = [
     statuses: ["received"],
   },
   {
-    label: "Запрос в ДВГА/КВГА и др.",
+    label: "Формирование запроса в ДВГА/КВГА, уполномоченные органы и др.",
     description: "Подготовка и направление запросов, получение ответов",
-    statuses: ["accepted", "forwarded", "materials"],
+    statuses: [
+      "accepted",
+      "forwarded",
+      "requested",
+      "request_approval",
+      "request_approved",
+      "materials",
+    ],
   },
   {
     label: "Заслушивание",
@@ -66,6 +79,12 @@ const TASK_HELP: Partial<Record<Action, string>> = {
     "Проверьте заявителя, исходный документ, срок подачи и компетенцию органа. Назначьте ответственного и зафиксируйте основание принятия к рассмотрению.",
   request:
     "Укажите адресата и срок рассмотрения. Система сформирует запрос и приложение к нему по шаблону.",
+  "send-request-approval":
+    "Проверьте сформированные запрос и приложение, затем направьте их директору ДАВГА на согласование.",
+  "approve-request":
+    "Проверьте сформированные документы и подтвердите согласование запроса.",
+  "fill-request-response":
+    "Заполните мотивированный ответ по каждому пункту и приложите подтверждающие документы.",
   position:
     "Вложите полученные файлы в материалы дела, затем подтвердите поступление ответа.",
   analysis:
