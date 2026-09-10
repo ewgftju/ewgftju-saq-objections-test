@@ -4,7 +4,6 @@ import { Button, Modal, Notice } from "../../../components/ui";
 import { actionForm } from "../formDefinitions";
 import type { FormField, FormValues } from "../formDefinitions";
 import { disputed } from "../services/decisions";
-import { OUTCOMES } from "../../../data/constants";
 import { DocumentContent } from "./DocumentModal";
 
 const COMMISSION_MEMBER_OPTIONS = [
@@ -115,10 +114,7 @@ function VotingFields({ c, values }: { c: ObjectionCase; values: FormValues }) {
       {disputed(c).map((point) => (
         <div key={point.id}>
           <h3 className="form-section">
-            Пункт {point.number}:{" "}
-            {point.proposal
-              ? OUTCOMES[point.proposal]
-              : "Проект не подготовлен"}
+            Пункт {point.number}: голосование членов апелляционной комиссии
           </h3>
           <div className="table-scroll">
             <table className="data-table">
