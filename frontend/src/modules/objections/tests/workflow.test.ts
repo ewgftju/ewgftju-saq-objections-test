@@ -517,6 +517,15 @@ test("дело открывает процесс, а одно действие �
   assert.match(appendixHtml, /Нарушение, по которым поступило возражение/);
   assert.match(appendixHtml, /Требование к технической спецификации/);
   assert.match(appendixHtml, /Описание соответствует функциональной потребности/);
+  const appendixWithResponseHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "request-appendix",
+      document: appendixDocument,
+      appendixPreview: { [h.c.issues[0].id]: "Мотивированный ответ ДВГА" },
+    }),
+  );
+  assert.match(appendixWithResponseHtml, /Мотивированный ответ ДВГА/);
   assert.match(renderToStaticMarkup(process()), /Отправить на согласование/);
   primaryAction(process())!();
   assert.deepEqual(selected, {
