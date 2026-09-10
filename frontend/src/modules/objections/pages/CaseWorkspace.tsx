@@ -8,7 +8,11 @@ import type {
   Role,
   ViolationPoint,
 } from "../../../types";
-import { formatDate, formatMoney } from "../../../utils/dateFormat";
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+} from "../../../utils/dateFormat";
 import {
   addMonths,
   filingDeadline,
@@ -176,7 +180,10 @@ export default function CaseWorkspace({
                   </Button>
                 </div>
                 <div className="facts">
-                  <Fact label="Вид обращения" value={TYPES[c.type]} />
+                  <Fact
+                    label="Вид обращения"
+                    value={c.appealType ?? TYPES[c.type]}
+                  />
                   <Fact label="Способ подачи" value={c.channel} />
                   <Fact label="БИН" value={c.bin} />
                   <Fact label="Заявитель" value={c.applicant} />
@@ -265,10 +272,13 @@ export default function CaseWorkspace({
                       Запрос: {formatDate(request.date)} ·{" "}
                       {request.responded
                         ? `Ответ получен: ${formatDate(request.responded)}`
-                        : `Ответ до: ${formatDate(request.deadline)}`}
+                        : `Ответ до: ${formatDateTime(request.deadline)}`}
                     </small>
                   </Notice>
                 ))}
+                {c.status === "requested" && (
+                  <Button onClick={onUpload}>Вложить полученные файлы</Button>
+                )}
                 {c.issues
                   .filter((point) => point.disputed)
                   .map((point) => (
