@@ -67,7 +67,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
         },
     materials: {
       action: control ? "control-analysis" : "analysis",
-      label: "Подготовить анализ по доводам",
+      label: control ? "Изучить административное дело" : "Сформировать справку",
       role: reviewer,
     },
     forwarded: {
@@ -276,6 +276,7 @@ export function addDocument(
       meeting: c.meeting || null,
       hearing: c.hearing || null,
       delivery: c.delivery || null,
+      certificate: c.certificate || null,
     }),
   });
 }
@@ -406,7 +407,69 @@ export function applyAction(
       c.status = "materials";
       doc("Полученные материалы по запросу", "position", note);
       break;
-    case "analysis":
+    case "analysis": {
+      if (form.has("authorityArguments")) {
+        const memberPositions = Array.from({ length: 20 }, (_, index) => {
+          const number = index + 1;
+          const name = String(form.get(`certificateMember_${number}`) || "").trim();
+          const argument = String(
+            form.get(`certificateArgument_${number}`) || "",
+          ).trim();
+          return name ? { id: String(number), name, argument } : null;
+        }).filter(
+          (member): member is { id: string; name: string; argument: string } =>
+            member !== null,
+        );
+        if (!memberPositions.length)
+          throw new Error("Добавьте хотя бы одного члена апелляционной комиссии");
+        if (memberPositions.some((member) => !member.argument))
+          throw new Error("Заполните довод каждого члена апелляционной комиссии");
+        c.certificate = {
+          authorityArguments: text("authorityArguments", "Доводы ДВГА"),
+          memberPositions,
+        };
+        c.status = "circulated";
+        c.result = null;
+        c.votes = null;
+        c.meeting = null;
+        note = "Справка сформирована и направлена для ознакомления членам апелляционной комиссии.";
+        doc(
+          "Справка по результатам изучения и анализа возражения",
+          "certificate",
+          note,
+        );
+        break;
+      }
+      for (const point of disputed(c)) {
+        point.analysis = text(
+          `analysis_${point.id}`,
+          `Анализ пункта ${point.number}`,
+        );
+        point.legal = text(
+          `legal_${point.id}`,
+          `Норма по пункту ${point.number}`,
+        );
+        const value = text(`proposal_${point.id}`, "Проект результата");
+        if (!(value in OUTCOMES))
+          throw new Error("Выберите допустимый результат");
+        point.proposal = value as Outcome;
+        const amount =
+          point.proposal === "accept"
+            ? 0
+            : point.proposal === "reject"
+              ? point.amount
+              : Number(text(`amount_${point.id}`, "Оставшаяся сумма"));
+        if (!Number.isFinite(amount) || amount < 0 || amount > point.amount)
+          throw new Error("Оставшаяся сумма должна быть в пределах исходной");
+        point.remainingAmount = amount;
+      }
+      c.status = "circulated";
+      c.result = null;
+      c.votes = null;
+      c.meeting = null;
+      doc("Справка по доводам", "analysis", note);
+      break;
+    }
     case "control-analysis": {
       for (const point of disputed(c)) {
         point.analysis = text(
@@ -431,18 +494,14 @@ export function applyAction(
           throw new Error("Оставшаяся сумма должна быть в пределах исходной");
         point.remainingAmount = amount;
       }
-      if (c.type === "control") {
-        checked(form, "fullCase", "noWorsening");
-        note = text("scope", "Результат изучения всего административного дела");
-      }
-      c.status = c.type === "control" ? "hearing" : "circulated";
+      checked(form, "fullCase", "noWorsening");
+      note = text("scope", "Результат изучения всего административного дела");
+      c.status = "hearing";
       c.result = null;
       c.votes = null;
       c.meeting = null;
       doc(
-        c.type === "control"
-          ? "Анализ административного дела"
-          : "Справка по доводам",
+        "Анализ административного дела",
         "analysis",
         note,
       );
