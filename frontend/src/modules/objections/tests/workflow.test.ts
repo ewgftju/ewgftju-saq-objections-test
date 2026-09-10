@@ -551,3 +551,48 @@ test("дело открывает процесс, а одно действие �
   assert.doesNotMatch(controlHtml, /Заседание, голоса и протокол/);
   assert.doesNotMatch(controlHtml, /Позиции комиссии/);
 });
+
+test("справка выводит позиции членов АК в печатной форме", () => {
+  const h = harness(0);
+  screen(h);
+  h.run("request", "work", {
+    recipient: "ДВГА по Атырауской области",
+    deadline: "2026-09-10T18:00",
+  });
+  h.run("send-request-approval", "work");
+  h.run("approve-request", "director", { approved: "on" });
+  h.run(
+    "fill-request-response",
+    "dvga",
+    Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .map((point) => [
+          `authorityResponse_${point.id}`,
+          "Мотивированный ответ ДВГА",
+        ]),
+    ),
+  );
+  h.run("analysis", "work", {
+    authorityArguments: "Доводы ДВГА для справки",
+    certificateMember_1: "ФИО 1",
+    certificateArgument_1: "Довод первого члена АК",
+    certificateMember_2: "ФИО 2",
+    certificateArgument_2: "Довод второго члена АК",
+  });
+  assert.equal(h.c.status, "circulated");
+  const certificate = h.c.documents.find(
+    (document) => document.kind === "certificate",
+  )!;
+  const html = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "certificate",
+      document: certificate,
+    }),
+  );
+  assert.match(html, /Доводы ДВГА для справки/);
+  assert.match(html, /ФИО 1/);
+  assert.match(html, /Довод второго члена АК/);
+  assert.match(html, /ГУ «Управление образования»/);
+});
