@@ -585,6 +585,8 @@ test("справка выводит позиции членов АК в печа
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
   assert.equal(h.c.status, "circulated");
+  h.run("members", "commission", { meetingConducted: "on" });
+  assert.equal(h.c.status, "meeting");
   const certificate = h.c.documents.find(
     (document) => document.kind === "certificate",
   )!;
