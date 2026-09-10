@@ -159,11 +159,12 @@ export function actionForm(
         "Вложите все полученные от адресата документы и сохраните подтверждение поступления ответа.";
       break;
     case "analysis":
+      title = "Сформировать справку";
+      note =
+        "Заполните доводы ДВГА и позиции членов апелляционной комиссии. Печатная форма обновляется в реальном времени.";
+      break;
     case "control-analysis":
-      title =
-        c.type === "control"
-          ? "Изучение административного дела"
-          : "Справка по доводам";
+      title = "Изучение административного дела";
       for (const point of disputed(c)) {
         fields.push(
           heading(point.id, `Пункт ${point.number} — ${point.title}`),
