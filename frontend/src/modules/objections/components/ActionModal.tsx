@@ -7,6 +7,15 @@ import { disputed } from "../services/decisions";
 import { OUTCOMES } from "../../../data/constants";
 import { DocumentContent } from "./DocumentModal";
 
+const COMMISSION_MEMBER_OPTIONS = [
+  "ФИО 1",
+  "ФИО 2",
+  "ФИО 3",
+  "ФИО 4",
+  "ФИО 5",
+  "ФИО 6",
+] as const;
+
 export function Field({ field }: { field: FormField }) {
   if (field.type === "heading")
     return <h3 className="form-section">{field.label}</h3>;
@@ -173,6 +182,7 @@ export default function ActionModal({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
+  const [certificateMembers, setCertificateMembers] = useState([1]);
   const definition = actionForm(action, c, date, values);
   const requestDeadline =
     values.deadline ||
@@ -185,7 +195,8 @@ export default function ActionModal({
       wide={
         action === "vote" ||
         action === "request" ||
-        action === "fill-request-response"
+        action === "fill-request-response" ||
+        action === "analysis"
       }
     >
       <form
@@ -320,6 +331,114 @@ export default function ActionModal({
                     values[`authorityResponse_${point.id}`] || point.position || "",
                   ]),
                 )}
+              />
+            </div>
+          </>
+        ) : action === "analysis" ? (
+          <>
+            <div className="request-modal-details">
+              <div>
+                <span>Автор</span>
+                <b>Исполнитель ДАВГА</b>
+              </div>
+              <div>
+                <span>Печатная форма</span>
+                <b>Справка по шаблону</b>
+              </div>
+            </div>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <div className="request-modal-tabs" role="tablist">
+              <button
+                type="button"
+                className={requestTab === "form" ? "active" : ""}
+                onClick={() => setRequestTab("form")}
+              >
+                Электронная форма
+              </button>
+              <button
+                type="button"
+                className={requestTab === "print" ? "active" : ""}
+                onClick={() => setRequestTab("print")}
+              >
+                Печатная форма
+              </button>
+            </div>
+            <div hidden={requestTab !== "form"}>
+              {certificateMembers.map((number) => (
+                <section className="certificate-member-form" key={number}>
+                  <h3 className="form-section">
+                    Член апелляционной комиссии {number}
+                  </h3>
+                  <label className="field">
+                    <span>
+                      ФИО члена апелляционной комиссии
+                      <span className="required"> *</span>
+                    </span>
+                    <select
+                      name={`certificateMember_${number}`}
+                      defaultValue={
+                        values[`certificateMember_${number}`] ||
+                        COMMISSION_MEMBER_OPTIONS[0]
+                      }
+                      required
+                    >
+                      {COMMISSION_MEMBER_OPTIONS.map((member) => (
+                        <option key={member} value={member}>
+                          {member}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>
+                      Довод <span className="required"> *</span>
+                    </span>
+                    <textarea
+                      name={`certificateArgument_${number}`}
+                      defaultValue={values[`certificateArgument_${number}`] || ""}
+                      rows={3}
+                      required
+                    />
+                  </label>
+                </section>
+              ))}
+              <Button
+                type="button"
+                onClick={() =>
+                  setCertificateMembers((members) => [
+                    ...members,
+                    members.length + 1,
+                  ])
+                }
+              >
+                Добавить члена АК
+              </Button>
+              <label className="field certificate-authority-arguments">
+                <span>
+                  Доводы ДВГА <span className="required"> *</span>
+                </span>
+                <textarea
+                  name="authorityArguments"
+                  defaultValue={values.authorityArguments || ""}
+                  rows={4}
+                  required
+                />
+              </label>
+            </div>
+            <div hidden={requestTab !== "print"} className="request-print-preview">
+              <DocumentContent
+                c={c}
+                kind="certificate"
+                certificatePreview={{
+                  authorityArguments: values.authorityArguments || "",
+                  memberPositions: certificateMembers.map((number) => ({
+                    id: String(number),
+                    name:
+                      values[`certificateMember_${number}`] ||
+                      COMMISSION_MEMBER_OPTIONS[0],
+                    argument: values[`certificateArgument_${number}`] || "",
+                  })),
+                }}
               />
             </div>
           </>
