@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { useState } from "react";
 import { Button, Modal } from "../../../components/ui";
 import { OUTCOMES } from "../../../data/constants";
-import type { CaseDocument, ObjectionCase } from "../../../types";
+import type { CaseDocument, CaseRequest, ObjectionCase } from "../../../types";
 import {
   formatDate,
   formatDateTime,
@@ -14,15 +14,19 @@ export function DocumentContent({
   c,
   kind,
   document,
+  requestPreview,
 }: {
   c: ObjectionCase;
   kind: string;
   document?: CaseDocument;
+  requestPreview?: Pick<CaseRequest, "recipient" | "deadline">;
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
-  const request = document?.requestId
-    ? c.requests.find((item) => item.id === document.requestId)
-    : undefined;
+  const request =
+    requestPreview ||
+    (document?.requestId
+      ? c.requests.find((item) => item.id === document.requestId)
+      : undefined);
   const title =
     document?.name ||
     (kind === "source"
@@ -32,6 +36,44 @@ export function DocumentContent({
           ? "Жалоба"
           : "Возражение"
         : "Материал обращения");
+  if (kind === "request" && request)
+    return (
+      <article className="print-document request-template">
+        <div className="request-template-header">
+          <div>
+            ҚАЗАҚСТАН РЕСПУБЛИКАСЫ
+            <br />
+            ҚАРЖЫ МИНИСТРЛІГІ
+          </div>
+          <span>ҚР</span>
+          <div>
+            МИНИСТЕРСТВО ФИНАНСОВ
+            <br />
+            РЕСПУБЛИКИ КАЗАХСТАН
+          </div>
+        </div>
+        <div className="request-template-line" />
+        <p className="request-template-recipient">
+          <b>{request.recipient || "Кому направить запрос"}</b>
+        </p>
+        <p className="request-template-body">
+          Қазақстан Республикасы Қаржы министрлігінің апелляциялық
+          комиссиясының қарауына «{c.org}» {formatDate(c.appealDate || c.filed)}
+          жылғы №{c.appealNumber || c.document.number} камералдық бақылау
+          нәтижелері бойынша анықталған бұзушылықтарды жою туралы
+          хабарламаларда көрсетілген бұзушылықтарға қарсылықтарының келіп
+          түсуіне байланысты {formatDateTime(request.deadline)} мерзімде
+          қарсылықтың дәлелдері бойынша дәлелді жауапты және растайтын
+          құжаттарды қоса бере отырып ұсынуыңызды талап етеміз.
+        </p>
+        <p>Қосымша __ бетте.</p>
+        <div className="request-template-signature">
+          <b>Апелляция департаментінің директоры</b>
+          <span>________________</span>
+        </div>
+      </article>
+    );
+
   return (
     <article className="print-document">
       <p className="document-watermark">
@@ -96,25 +138,6 @@ export function DocumentContent({
           <p>
             <b>Подписант:</b> {c.applicant}. Подпись имитируется.
           </p>
-        </>
-      )}
-      {kind === "request" && request && (
-        <>
-          <p>
-            <b>{request.recipient}</b>
-          </p>
-          <p>
-            Қазақстан Республикасы Қаржы министрлігінің апелляциялық
-            комиссиясының қарауына «{c.org}»{" "}
-            {formatDate(c.appealDate || c.filed)}
-            жылғы №{c.appealNumber || c.document.number} камералдық бақылау
-            нәтижелері бойынша анықталған бұзушылықтарды жою туралы
-            хабарламаларда көрсетілген бұзушылықтарға қарсылықтарының келіп
-            түсуіне байланысты {formatDateTime(request.deadline)} мерзімде
-            қарсылықтың дәлелдері бойынша дәлелді жауапты және растайтын
-            құжаттарды қоса бере отырып ұсынуыңызды талап етеміз.
-          </p>
-          <p>Қосымша __ бетте.</p>
         </>
       )}
       {kind === "request-appendix" && request && (
