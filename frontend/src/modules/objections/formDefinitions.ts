@@ -127,6 +127,31 @@ export function actionForm(
       note =
         "Будут сформированы два документа: запрос и приложение к нему. Реквизиты обращения подставятся в шаблон автоматически.";
       break;
+    case "send-request-approval":
+      title = "Отправить запрос на согласование";
+      note =
+        "Запрос и приложение будут направлены директору ДАВГА для согласования.";
+      break;
+    case "approve-request":
+      title = "Согласование запроса";
+      fields.push(check("approved", "Запрос и приложение согласованы"));
+      note =
+        "После согласования запрос в ДВГА/КВГА будет направлен в их кабинет для подготовки мотивированного ответа.";
+      break;
+    case "fill-request-response":
+      title = "Ответ ДВГА/КВГА на запрос";
+      for (const point of disputed(c))
+        fields.push(
+          heading(point.id, `Пункт ${point.number} — ${point.title}`),
+          area(
+            `authorityResponse_${point.id}`,
+            "Мотивированный ответ ДВГА/КВГА по доводу возражения",
+            point.position,
+          ),
+        );
+      note =
+        "Заполните мотивированный ответ по каждому пункту. Тексты появятся в третьем столбце приложения к запросу.";
+      break;
     case "position":
       title = "Ответ получен";
       fields[0] = input("date", "Дата получения ответа", date, "date");
