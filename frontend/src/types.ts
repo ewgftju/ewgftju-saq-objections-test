@@ -120,6 +120,7 @@ export interface CaseDocument {
     meeting: Meeting | null;
     hearing: Hearing | null;
     delivery: Delivery | null;
+    certificate: CaseCertificate | null;
   };
 }
 
@@ -130,6 +131,17 @@ export interface CaseRequest {
   text: string;
   deadline: string;
   responded?: string;
+}
+
+export interface CertificateMemberPosition {
+  id: string;
+  name: string;
+  argument: string;
+}
+
+export interface CaseCertificate {
+  authorityArguments: string;
+  memberPositions: CertificateMemberPosition[];
 }
 
 export interface HistoryEvent {
@@ -177,6 +189,7 @@ export interface ObjectionCase {
   screening?: string;
   actEffect?: string;
   memberPosition?: string;
+  certificate?: CaseCertificate | null;
   hearing?: Hearing | null;
   meeting?: Meeting | null;
   votes?: Record<string, VoteResult> | null;
