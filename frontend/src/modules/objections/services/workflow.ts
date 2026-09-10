@@ -87,7 +87,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
     },
     circulated: {
       action: "members",
-      label: "Зафиксировать позиции комиссии",
+      label: "Заседание по данному делу проведено",
       role: "commission",
     },
     hearing: {
@@ -535,6 +535,13 @@ export function applyAction(
       break;
     }
     case "members":
+      if (form.has("meetingConducted")) {
+        c.memberPosition = "Заседание по данному делу проведено.";
+        c.status = "meeting";
+        note = "Заседание по данному делу проведено. Обращение переведено на этап принятия решения.";
+        doc("Сведения о проведении заседания", "members", note);
+        break;
+      }
       c.memberPosition = text("position", "Позиции членов комиссии");
       checked(form, "shared");
       c.status = "hearing";
