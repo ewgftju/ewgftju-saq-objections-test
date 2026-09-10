@@ -6,6 +6,18 @@ import { dateObject } from "../services/deadlines";
 import { required } from "../services/workflow";
 import { Field } from "./ActionModal";
 
+const FILE_EXTENSIONS = /\.(pdf|png|jpe?g|docx?|xlsx?|txt)$/i;
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+function fileDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
+    reader.readAsDataURL(file);
+  });
+}
+
 const APPEAL_TYPES = [
   { value: "statement", label: "Заявление", caseType: "control" },
   {
@@ -56,10 +68,24 @@ export default function NewCaseModal({
   return (
     <Modal title="Новое тестовое обращение" onClose={onClose}>
       <form
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           try {
             const data = new FormData(event.currentTarget);
+            const requirementFiles = data
+              .getAll("requirementsFiles")
+              .filter(
+                (value): value is File =>
+                  value instanceof File && value.name.length > 0,
+              );
+            requirementFiles.forEach((file) => {
+              if (file.size > MAX_FILE_SIZE)
+                throw new Error(`Файл «${file.name}» превышает 2 МБ`);
+              if (!FILE_EXTENSIONS.test(file.name))
+                throw new Error(
+                  "Поддерживаются PDF, PNG, JPG, DOC(X), XLS(X), TXT",
+                );
+            });
             const get = (name: string, label: string) =>
               required(data, name, label);
             const bin = get("bin", "БИН");
@@ -129,6 +155,25 @@ export default function NewCaseModal({
                 },
               ],
             });
+            c.documents = await Promise.all(
+              requirementFiles.map(async (file) => ({
+                name: file.name,
+                filename: file.name,
+                kind: "attachment",
+                text: "Требования заявителя",
+                author: "Заявитель",
+                date: state.date,
+                dataUrl: await fileDataUrl(file),
+              })),
+            );
+            if (requirementFiles.length) {
+              c.history.push({
+                date: state.date,
+                actor: "Заявитель",
+                title: "Добавлены требования заявителя",
+                text: requirementFiles.map((file) => file.name).join(", "),
+              });
+            }
             onSave({ ...state, cases: [...state.cases, c] }, id);
             onClose();
           } catch (cause) {
@@ -223,6 +268,17 @@ export default function NewCaseModal({
             required: true,
           }}
         />
+        <label className="field">
+          <span>Требования заявителя</span>
+          <input
+            type="file"
+            name="requirementsFiles"
+            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
+            multiple
+            aria-label="Вложить файлы"
+          />
+          <small className="muted">Можно вложить несколько файлов до 2 МБ каждый.</small>
+        </label>
         <h3 className="form-section">Оспариваемый пункт</h3>
         <Field
           field={{
