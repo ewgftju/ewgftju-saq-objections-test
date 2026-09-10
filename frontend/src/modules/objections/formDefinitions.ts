@@ -11,6 +11,7 @@ export interface FormField {
   type:
     | "text"
     | "date"
+    | "datetime-local"
     | "textarea"
     | "select"
     | "checkbox"
@@ -70,7 +71,7 @@ export function actionForm(
   values: FormValues,
 ): FormDefinition {
   const day = input("date", "Дата действия", date, "date");
-  let fields: FormField[] = [day];
+  let fields: FormField[] = action === "request" ? [] : [day];
   let title = "Действие по обращению";
   let note = "";
   switch (action) {
@@ -113,29 +114,24 @@ export function actionForm(
           : "Статьи 58-2 и 58-3: срок, способ подачи и полномочия. Отказ в рассмотрении оформляется комиссией отдельным действием.";
       break;
     case "request":
-      title = "Запрос материалов в ДВГА";
+      title = "Сформировать запрос";
       fields.push(
-        area(
-          "text",
-          "Запрашиваемые материалы",
-          "Представить мотивированную позицию и подтверждающие материалы по каждому оспариваемому пункту.",
+        input("recipient", "Кому направить запрос"),
+        input(
+          "deadline",
+          "Срок рассмотрения",
+          `${date}T18:00`,
+          "datetime-local",
         ),
       );
       note =
-        "Пункт 14 Положения № 302: запрос рабочего органа — 2 рабочих дня, ответ ДВГА — 2 рабочих дня с получения.";
+        "Будут сформированы два документа: запрос и приложение к нему. Реквизиты обращения подставятся в шаблон автоматически.";
       break;
     case "position":
-      title = "Позиция ДВГА";
-      fields.push(
-        ...disputed(c).map((point) =>
-          area(
-            `position_${point.id}`,
-            `Пункт ${point.number} — ${point.title}`,
-            point.position,
-          ),
-        ),
-        area("evidence", "Опись приложенных доказательств"),
-      );
+      title = "Ответ получен";
+      fields.push(area("evidence", "Краткое описание полученных материалов"));
+      note =
+        "Перед подтверждением ответа вложите полученные файлы в разделе материалов дела.";
       break;
     case "analysis":
     case "control-analysis":
@@ -227,10 +223,7 @@ export function actionForm(
         );
         if (c.type === "control")
           fields.push(
-            check(
-              "issuerNotified",
-              "Орган, принявший акт, также извещён",
-            ),
+            check("issuerNotified", "Орган, принявший акт, также извещён"),
           );
       } else
         fields.push(
@@ -308,10 +301,7 @@ export function actionForm(
           ["satisfy", "Полностью удовлетворить жалобу"],
         ]),
         area("reason", "Основание и мотивировка"),
-        check(
-          "materials",
-          "Комплект административного дела подготовлен",
-        ),
+        check("materials", "Комплект административного дела подготовлен"),
       );
       if ((values.mode || "forward") === "forward")
         fields.push(
@@ -365,10 +355,7 @@ export function actionForm(
       );
       if (c.type === "notice")
         fields.push(
-          check(
-            "published",
-            "Размещение решения на портале зарегистрировано",
-          ),
+          check("published", "Размещение решения на портале зарегистрировано"),
         );
       note =
         c.type === "control"
@@ -394,10 +381,7 @@ export function actionForm(
           "note",
           "Изменения по пунктам, оставшиеся обязательства и подтверждающий документ",
         ),
-        check(
-          "checked",
-          "Решение и оставшиеся пункты учтены в исходном деле",
-        ),
+        check("checked", "Решение и оставшиеся пункты учтены в исходном деле"),
       );
       note =
         "Закрытие обращения означает учёт результата рассмотрения. Оставшиеся нарушения продолжают исполняться в исходном модуле.";
@@ -457,10 +441,7 @@ export function actionForm(
               ],
         ),
         area("reason", "Мотивировка и реквизиты подтверждения"),
-        check(
-          "notice",
-          "Письменное извещение заявителю зарегистрировано",
-        ),
+        check("notice", "Письменное извещение заявителю зарегистрировано"),
       );
       note =
         action === "refuse"
@@ -506,6 +487,10 @@ export function actionForm(
       break;
   }
   const prepared = preparedActionValues(c, action);
-  fields = fields.map(field => !field.value && prepared[field.name] ? { ...field, value: prepared[field.name] } : field);
+  fields = fields.map((field) =>
+    !field.value && prepared[field.name]
+      ? { ...field, value: prepared[field.name] }
+      : field,
+  );
   return { title, fields, note, submit: "Зафиксировать действие" };
 }
