@@ -192,7 +192,9 @@ export default function ObjectionsModule() {
             onAction={(action, role) => {
               if (
                 action === "send-request-approval" ||
-                action === "approve-request"
+                action === "approve-request" ||
+                action === "approve-certificate" ||
+                action === "send-certificate-to-commission"
               ) {
                 const form = new FormData();
                 if (action === "approve-request") {
@@ -209,7 +211,11 @@ export default function ObjectionsModule() {
                   next,
                   action === "approve-request"
                     ? "Запрос согласован"
-                    : "Запрос направлен на согласование",
+                    : action === "approve-certificate"
+                      ? "Справка согласована"
+                      : action === "send-certificate-to-commission"
+                        ? "Справка и документы направлены членам АК"
+                        : "Запрос направлен на согласование",
                 );
                 return;
               }
