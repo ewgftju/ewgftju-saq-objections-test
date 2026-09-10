@@ -622,10 +622,7 @@ export function applyAction(
       }));
       c.votes = {};
       for (const point of disputed(c)) {
-        if (!point.proposal)
-          throw new Error(
-            "Сначала подготовьте проект результата по каждому пункту",
-          );
+        if (!point.proposal) point.proposal = "accept";
         const votes = Object.fromEntries(
           c.members.map((member) => [
             member.id,
