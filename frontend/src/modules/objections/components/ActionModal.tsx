@@ -273,17 +273,13 @@ export default function ActionModal({
                 <div className="response-receipt-heading">
                   <span aria-hidden="true">↓</span>
                   <div>
-                    <b>Из внешней системы</b>
+                    <b>Из кабинета ДВГА/КВГА</b>
                     <small>Электронное поступление</small>
                   </div>
                   <em>НЕ ПОСТУПИЛО</em>
                 </div>
                 <div className="response-receipt-empty">
-                  <b>Подтверждение не поступило</b>
-                  <p>
-                    Ответ зарегистрируется исполнителем с приложением
-                    полученных документов.
-                  </p>
+                  <b>Ответ не поступил</b>
                 </div>
               </section>
               <section className="response-receipt-card response-receipt-manual">
@@ -291,7 +287,6 @@ export default function ActionModal({
                   <span aria-hidden="true">↑</span>
                   <div>
                     <b>Внесено исполнителем</b>
-                    <small>Регистрация полученного ответа</small>
                   </div>
                   <em>ТРЕБУЕТСЯ</em>
                 </div>
@@ -314,11 +309,6 @@ export default function ActionModal({
                     />
                     <small>Можно вложить несколько файлов до 2 МБ каждый.</small>
                   </label>
-                  {definition.fields
-                    .filter((field) => field.name === "evidence")
-                    .map((field) => (
-                      <Field key={field.name} field={field} />
-                    ))}
                 </div>
               </section>
             </div>
