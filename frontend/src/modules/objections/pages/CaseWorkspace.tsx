@@ -276,9 +276,6 @@ export default function CaseWorkspace({
                     </small>
                   </Notice>
                 ))}
-                {c.status === "requested" && (
-                  <Button onClick={onUpload}>Вложить полученные файлы</Button>
-                )}
                 {c.issues
                   .filter((point) => point.disputed)
                   .map((point) => (
