@@ -61,6 +61,7 @@ export default function NewCaseModal({
   onClose: () => void;
 }) {
   const [appealType, setAppealType] = useState<string>(APPEAL_TYPES[0].value);
+  const [pointCount, setPointCount] = useState(1);
   const [error, setError] = useState("");
   const selectedAppealType =
     APPEAL_TYPES.find((item) => item.value === appealType) ?? APPEAL_TYPES[0];
@@ -152,18 +153,35 @@ export default function NewCaseModal({
               },
               request: get("request", "Требования"),
               amount,
-              issues: [
-                {
-                  id: "point1",
-                  number: get("pointNumber", "Пункт"),
-                  title: get("pointTitle", "Заголовок пункта"),
-                  finding: get("finding", "Вывод"),
-                  argument: get("argument", "Довод"),
-                  evidence: get("evidence", "Доказательства"),
+              issues: Array.from({ length: pointCount }, (_, index) => {
+                const pointId = `point${index + 1}`;
+                const pointNumber = index + 1;
+                return {
+                  id: pointId,
+                  number: get(
+                    `pointNumber_${pointId}`,
+                    `Номер пункта ${pointNumber}`,
+                  ),
+                  title: get(
+                    `pointTitle_${pointId}`,
+                    `Краткий заголовок пункта ${pointNumber}`,
+                  ),
+                  finding: get(
+                    `finding_${pointId}`,
+                    `Вывод исходного документа по пункту ${pointNumber}`,
+                  ),
+                  argument: get(
+                    `argument_${pointId}`,
+                    `Довод заявителя по пункту ${pointNumber}`,
+                  ),
+                  evidence: get(
+                    `evidence_${pointId}`,
+                    `Документы по пункту ${pointNumber}`,
+                  ),
                   disputed: true,
                   amount,
-                },
-              ],
+                };
+              }),
             });
             c.documents = await Promise.all(
               requirementFiles.map(async (file) => ({
@@ -196,7 +214,8 @@ export default function NewCaseModal({
         }}
       >
         <Notice>
-          Укажите реквизиты обращения и оспариваемого документа. Дата регистрации определяется датой учёта.
+          Укажите реквизиты обращения и оспариваемого документа. Дата
+          регистрации определяется датой учёта.
         </Notice>
         <label className="field">
           <span>Вид обращения</span>
@@ -295,36 +314,60 @@ export default function NewCaseModal({
             multiple
             aria-label="Вложить файлы"
           />
-          <small className="muted">Можно вложить несколько файлов до 2 МБ каждый.</small>
+          <small className="muted">
+            Можно вложить несколько файлов до 2 МБ каждый.
+          </small>
         </label>
-        <h3 className="form-section">Оспариваемый пункт</h3>
-        <Field
-          field={{
-            name: "pointNumber",
-            label: "Номер пункта",
-            value: "1",
-            type: "text",
-            required: true,
-          }}
-        />
-        <Field
-          field={{
-            name: "pointTitle",
-            label: "Краткий заголовок",
-            type: "text",
-            required: true,
-          }}
-        />
-        {[
-          { name: "finding", label: "Вывод исходного документа" },
-          { name: "argument", label: "Довод заявителя" },
-          { name: "evidence", label: "Документы, подтверждающие довод" },
-        ].map((field) => (
-          <Field
-            key={field.name}
-            field={{ ...field, type: "textarea", required: true }}
-          />
-        ))}
+        {Array.from({ length: pointCount }, (_, index) => {
+          const pointId = `point${index + 1}`;
+          const pointNumber = index + 1;
+          return (
+            <section key={pointId}>
+              <h3 className="form-section">Оспариваемый пункт {pointNumber}</h3>
+              <Field
+                field={{
+                  name: `pointNumber_${pointId}`,
+                  label: "Номер пункта",
+                  value: String(pointNumber),
+                  type: "text",
+                  required: true,
+                }}
+              />
+              <Field
+                field={{
+                  name: `pointTitle_${pointId}`,
+                  label: "Краткий заголовок",
+                  type: "text",
+                  required: true,
+                }}
+              />
+              {[
+                { name: "finding", label: "Вывод исходного документа" },
+                { name: "argument", label: "Довод заявителя" },
+                {
+                  name: "evidence",
+                  label: "Документы, подтверждающие довод",
+                },
+              ].map((field) => (
+                <Field
+                  key={field.name}
+                  field={{
+                    ...field,
+                    name: `${field.name}_${pointId}`,
+                    type: "textarea",
+                    required: true,
+                  }}
+                />
+              ))}
+            </section>
+          );
+        })}
+        <Button
+          type="button"
+          onClick={() => setPointCount((count) => count + 1)}
+        >
+          Добавить оспариваемый пункт
+        </Button>
         {error && (
           <p className="form-error" role="alert">
             {error}
