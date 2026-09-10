@@ -100,7 +100,7 @@ function prepare(h: Harness, partial = false) {
     ),
   );
   analysis(h, partial);
-  h.run("members", "commission", {
+  h.run("members", "work", {
     shared: "on",
     position: "Все позиции зафиксированы",
   });
@@ -585,7 +585,7 @@ test("справка выводит позиции членов АК в печа
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
   assert.equal(h.c.status, "circulated");
-  h.run("members", "commission", { meetingConducted: "on" });
+  h.run("members", "work", { meetingConducted: "on" });
   assert.equal(h.c.status, "meeting");
   const certificate = h.c.documents.find(
     (document) => document.kind === "certificate",
