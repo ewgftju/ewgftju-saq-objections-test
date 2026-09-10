@@ -166,11 +166,12 @@ export default function ActionModal({
   action: Action;
   c: ObjectionCase;
   date: string;
-  onSubmit: (form: FormData) => void;
+  onSubmit: (form: FormData) => void | Promise<void>;
   onClose: () => void;
 }) {
   const [values, setValues] = useState<FormValues>({});
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const definition = actionForm(action, c, date, values);
   const requestDeadline =
@@ -199,10 +200,11 @@ export default function ActionModal({
             });
           setValues(next);
         }}
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           try {
-            onSubmit(new FormData(event.currentTarget));
+            setSaving(true);
+            await onSubmit(new FormData(event.currentTarget));
             onClose();
           } catch (cause) {
             setError(
@@ -210,6 +212,8 @@ export default function ActionModal({
                 ? cause.message
                 : "Не удалось сохранить действие",
             );
+          } finally {
+            setSaving(false);
           }
         }}
       >
@@ -258,6 +262,67 @@ export default function ActionModal({
               />
             </div>
           </>
+        ) : action === "position" ? (
+          <>
+            <Notice tone="amber">
+              Ответ от адресата ещё не подтверждён. Внесите дату поступления и
+              вложите все полученные файлы.
+            </Notice>
+            <div className="response-receipt-grid">
+              <section className="response-receipt-card response-receipt-system">
+                <div className="response-receipt-heading">
+                  <span aria-hidden="true">↓</span>
+                  <div>
+                    <b>Из внешней системы</b>
+                    <small>Электронное поступление</small>
+                  </div>
+                  <em>НЕ ПОСТУПИЛО</em>
+                </div>
+                <div className="response-receipt-empty">
+                  <b>Подтверждение не поступило</b>
+                  <p>
+                    Ответ зарегистрируется исполнителем с приложением
+                    полученных документов.
+                  </p>
+                </div>
+              </section>
+              <section className="response-receipt-card response-receipt-manual">
+                <div className="response-receipt-heading">
+                  <span aria-hidden="true">↑</span>
+                  <div>
+                    <b>Внесено исполнителем</b>
+                    <small>Регистрация полученного ответа</small>
+                  </div>
+                  <em>ТРЕБУЕТСЯ</em>
+                </div>
+                <div className="response-receipt-fields">
+                  {definition.fields
+                    .filter((field) => field.name === "date")
+                    .map((field) => (
+                      <Field key={field.name} field={field} />
+                    ))}
+                  <label className="field">
+                    <span>
+                      Полученные файлы <span className="required">*</span>
+                    </span>
+                    <input
+                      type="file"
+                      name="responseFiles"
+                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
+                      multiple
+                      required
+                    />
+                    <small>Можно вложить несколько файлов до 2 МБ каждый.</small>
+                  </label>
+                  {definition.fields
+                    .filter((field) => field.name === "evidence")
+                    .map((field) => (
+                      <Field key={field.name} field={field} />
+                    ))}
+                </div>
+              </section>
+            </div>
+          </>
         ) : (
           <>
             {definition.note && <Notice>{definition.note}</Notice>}
@@ -276,7 +341,14 @@ export default function ActionModal({
                   .forEach((select) => {
                     select.value = "yes";
                   });
-                setValues(Object.fromEntries([...new FormData(form).entries()].map(([key, value]) => [key, String(value)])));
+                setValues(
+                  Object.fromEntries(
+                    [...new FormData(form).entries()].map(([key, value]) => [
+                      key,
+                      String(value),
+                    ]),
+                  ),
+                );
               }}
             >
               Единогласно за проекты
@@ -290,9 +362,15 @@ export default function ActionModal({
           </p>
         )}
         <div className="dialog-actions">
-          <Button onClick={onClose}>Отмена</Button>
-          <Button type="submit" primary>
-            {definition.submit}
+          <Button onClick={onClose} disabled={saving}>
+            Отмена
+          </Button>
+          <Button type="submit" primary disabled={saving}>
+            {saving
+              ? "Сохранение..."
+              : action === "position"
+                ? "Сохранить полученный ответ"
+                : definition.submit}
           </Button>
         </div>
       </form>
