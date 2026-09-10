@@ -337,7 +337,7 @@ export function applyAction(
       break;
     }
     case "position":
-      note = text("evidence", "Опись доказательств");
+      note = "Получен ответ на направленный запрос.";
       if (c.requests.length) c.requests[c.requests.length - 1].responded = date;
       c.status = "materials";
       doc("Полученные материалы по запросу", "position", note);
