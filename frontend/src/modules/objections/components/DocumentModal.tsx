@@ -6,6 +6,7 @@ import type {
   CaseCertificate,
   CaseDocument,
   CaseRequest,
+  CommissionMember,
   ObjectionCase,
 } from "../../../types";
 import {
@@ -22,6 +23,7 @@ export function DocumentContent({
   requestPreview,
   appendixPreview,
   certificatePreview,
+  protocolPreview,
 }: {
   c: ObjectionCase;
   kind: string;
@@ -29,6 +31,13 @@ export function DocumentContent({
   requestPreview?: Pick<CaseRequest, "recipient" | "deadline">;
   appendixPreview?: Record<string, string>;
   certificatePreview?: CaseCertificate;
+  protocolPreview?: {
+    date: string;
+    number: string;
+    audio: string;
+    members: CommissionMember[];
+    votes: Record<string, Record<string, string>>;
+  };
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
   const request =
@@ -174,6 +183,93 @@ export function DocumentContent({
             </tr>
           </tbody>
         </table>
+      </article>
+    );
+  }
+
+  if (kind === "protocol") {
+    const meeting = protocolPreview || snapshot.meeting;
+    const members = protocolPreview?.members || snapshot.members;
+    const presentMembers = members.filter((member) => member.present);
+    const votes = protocolPreview?.votes || snapshot.votes;
+    return (
+      <article className="print-document protocol-template">
+        <h1>
+          ПРОТОКОЛ № {meeting?.number || "<Номер протокола>"}
+          <br />
+          заседания Апелляционной комиссии
+        </h1>
+        <div className="protocol-template-place-date">
+          <span>город Астана</span>
+          <span>{formatDate(meeting?.date)}</span>
+        </div>
+        <p>
+          <b>ПРИСУТСТВОВАЛИ (онлайн, Zoom):</b>
+          <br />
+          Заместитель Председателя Апелляционной комиссии: Директор ДАВГА
+          <br />
+          Члены Апелляционной комиссии: {presentMembers.map((member) => member.name).join(", ") || "—"}
+          <br />
+          Секретарь Апелляционной комиссии: главный эксперт ДАВГА
+        </p>
+        <p className="protocol-template-intro">
+          Возражение «{snapshot.org}», БИН {snapshot.bin} от{" "}
+          {formatDate(snapshot.appealDate || snapshot.filed)} года №
+          {snapshot.appealNumber || snapshot.document.number} к уведомлению{" "}
+          {snapshot.issuer} от {formatDate(snapshot.document.date)} года №
+          {snapshot.document.number}.
+        </p>
+        <p>
+          Количество присутствовавших членов Апелляционной комиссии: {presentMembers.length}.
+          <br />
+          <b>Результаты голосования членов Апелляционной комиссии:</b>
+        </p>
+        <table className="protocol-votes-table">
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>Суть вопроса / член Апелляционной комиссии</th>
+              <th>За / против</th>
+              <th>Обоснование</th>
+            </tr>
+          </thead>
+          <tbody>
+            {snapshot.issues
+              .filter((point) => point.disputed)
+              .flatMap((point) => [
+                <tr key={`${point.id}-question`}>
+                  <td>{point.number}</td>
+                  <td colSpan={3}>{point.title}</td>
+                </tr>,
+                ...presentMembers.map((member) => (
+                  <tr key={`${point.id}-${member.id}`}>
+                    <td />
+                    <td>{member.name}</td>
+                    <td>
+                      {member.recused
+                        ? "Не голосует"
+                        : (votes?.[point.id] as { votes?: Record<string, string> } | undefined)?.votes?.[member.id] === "yes" ||
+                            protocolPreview?.votes?.[point.id]?.[member.id] === "yes"
+                          ? "За"
+                          : "Против"}
+                    </td>
+                    <td>{member.reason || "—"}</td>
+                  </tr>
+                )),
+              ])}
+          </tbody>
+        </table>
+        <p className="protocol-template-result">
+          На основании результатов голосования членов Апелляционной комиссии принято решение по возражению.
+        </p>
+        <div className="protocol-template-signatures">
+          <p>Заместитель Председателя Апелляционной комиссии: __________________ ФИО</p>
+          {presentMembers.map((member) => (
+            <p key={member.id}>Член Апелляционной комиссии: __________________ {member.name}</p>
+          ))}
+          <p>Секретарь Апелляционной комиссии: __________________ ФИО</p>
+          <p className="muted">Аудиозапись: {meeting?.audio || "—"}</p>
+        </div>
       </article>
     );
   }
@@ -428,7 +524,7 @@ export default function DocumentModal(props: {
 }) {
   const [error, setError] = useState("");
   const css =
-    "body{font:14px Arial,sans-serif;line-height:1.6;color:#111;max-width:850px;margin:28px auto;padding:24px}h2{text-align:center}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:8px;text-align:left}.document-watermark{color:#555;text-align:center;font-size:11px}.document-footer{font-size:12px;border-top:1px solid #bbb;padding-top:16px}.appendix-template{box-sizing:border-box;min-height:680px;padding:52px 54px 96px;font-family:'Times New Roman',Times,serif}.appendix-template-number{margin:0 14px 14px 0!important;font-size:16px!important;text-align:right}.appendix-template table{table-layout:fixed;font-size:16px;line-height:1.35}.appendix-template th,.appendix-template td{border:1px solid #111;padding:7px 9px;vertical-align:top;word-break:break-word}.appendix-template th{text-align:center;font-size:17px;background:white}.appendix-template tbody tr{height:40px}.appendix-template th:first-child,.appendix-template td:first-child{width:5%;text-align:center;font-weight:bold}.appendix-template th:nth-child(2),.appendix-template td:nth-child(2){width:23%}.appendix-template th:nth-child(3),.appendix-template td:nth-child(3){width:31%}.appendix-template th:nth-child(4),.appendix-template td:nth-child(4){width:41%}.certificate-template{box-sizing:border-box;min-height:900px;padding:58px 68px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.45}.certificate-template h1,.certificate-template h2{text-align:center;font-size:22px;margin:0;font-weight:700}.certificate-template h2{font-size:20px;margin-bottom:34px}.certificate-template-intro{text-align:justify;text-indent:28px}.certificate-template-point-list{margin:28px 46px}.certificate-template-lead{margin-top:30px;font-weight:700;text-align:center}.certificate-template-line{border-bottom:2px solid #111;padding:6px 0;margin:20px 0}.certificate-template-section-title{margin:28px 0 12px 46px;font-size:20px;font-weight:700}.certificate-members-table{table-layout:fixed}.certificate-members-table th,.certificate-members-table td{border:1px solid #111;padding:10px;vertical-align:top;white-space:pre-wrap}.certificate-members-table th{text-align:center;font-weight:700}@page{size:A4;margin:18mm}";
+    "body{font:14px Arial,sans-serif;line-height:1.6;color:#111;max-width:850px;margin:28px auto;padding:24px}h2{text-align:center}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:8px;text-align:left}.document-watermark{color:#555;text-align:center;font-size:11px}.document-footer{font-size:12px;border-top:1px solid #bbb;padding-top:16px}.appendix-template{box-sizing:border-box;min-height:680px;padding:52px 54px 96px;font-family:'Times New Roman',Times,serif}.appendix-template-number{margin:0 14px 14px 0!important;font-size:16px!important;text-align:right}.appendix-template table{table-layout:fixed;font-size:16px;line-height:1.35}.appendix-template th,.appendix-template td{border:1px solid #111;padding:7px 9px;vertical-align:top;word-break:break-word}.appendix-template th{text-align:center;font-size:17px;background:white}.appendix-template tbody tr{height:40px}.appendix-template th:first-child,.appendix-template td:first-child{width:5%;text-align:center;font-weight:bold}.appendix-template th:nth-child(2),.appendix-template td:nth-child(2){width:23%}.appendix-template th:nth-child(3),.appendix-template td:nth-child(3){width:31%}.appendix-template th:nth-child(4),.appendix-template td:nth-child(4){width:41%}.certificate-template{box-sizing:border-box;min-height:900px;padding:58px 68px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.45}.certificate-template h1,.certificate-template h2{text-align:center;font-size:22px;margin:0;font-weight:700}.certificate-template h2{font-size:20px;margin-bottom:34px}.certificate-template-intro{text-align:justify;text-indent:28px}.certificate-template-point-list{margin:28px 46px}.certificate-template-lead{margin-top:30px;font-weight:700;text-align:center}.certificate-template-line{border-bottom:2px solid #111;padding:6px 0;margin:20px 0}.certificate-template-section-title{margin:28px 0 12px 46px;font-size:20px;font-weight:700}.certificate-members-table{table-layout:fixed}.certificate-members-table th,.certificate-members-table td{border:1px solid #111;padding:10px;vertical-align:top;white-space:pre-wrap}.certificate-members-table th{text-align:center;font-weight:700}.protocol-template{box-sizing:border-box;padding:56px 64px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.4}.protocol-template h1{margin:0 0 34px;text-align:center;font-size:21px;font-weight:400}.protocol-template-place-date{display:flex;justify-content:space-between;margin-bottom:28px}.protocol-template-intro,.protocol-template-result{text-align:justify;text-indent:28px}.protocol-votes-table{table-layout:fixed}.protocol-votes-table th,.protocol-votes-table td{border:1px solid #111;padding:7px 8px;vertical-align:top}.protocol-votes-table th{text-align:center;font-weight:400}.protocol-template-signatures{margin-top:46px}@page{size:A4;margin:18mm}";
   const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>SAQ — документ</title><style>${css}</style></head><body>${renderToStaticMarkup(<DocumentContent {...props} />)}</body></html>`;
   return (
     <Modal title="Просмотр документа" onClose={props.onClose} wide>
