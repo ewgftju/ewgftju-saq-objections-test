@@ -5,6 +5,7 @@ export const TYPES = {
 } as const;
 export const ROLES = {
   work: "Рабочий орган",
+  director: "Директор ДАВГА",
   dvga: "ДВГА",
   commission: "Апелляционная комиссия",
   subject: "Объект",
@@ -13,7 +14,9 @@ export const ROLES = {
 export const STATUS = {
   received: "Поступило",
   accepted: "Принято к рассмотрению",
-  requested: "Ожидается позиция ДВГА",
+  requested: "Запрос сформирован",
+  request_approval: "Запрос на согласовании",
+  request_approved: "Запрос согласован",
   materials: "Анализ материалов",
   circulated: "Позиции членов комиссии",
   hearing: "Подготовка заслушивания",
