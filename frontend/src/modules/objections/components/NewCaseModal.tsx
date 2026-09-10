@@ -66,7 +66,7 @@ export default function NewCaseModal({
             if (!/^\d{12}$/.test(bin))
               throw new Error("БИН должен содержать 12 цифр");
             const received = get("received", "Дата получения документа");
-            const filed = get("filed", "Дата подачи");
+            const filed = state.date;
             const documentDate = get("documentDate", "Дата документа");
             [received, filed, documentDate].forEach(dateObject);
             if (
@@ -77,9 +77,7 @@ export default function NewCaseModal({
               throw new Error(
                 "Проверьте порядок дат: документ → получение → подача → регистрация",
               );
-            const amount = Number(get("amount", "Сумма"));
-            if (!Number.isFinite(amount) || amount < 0)
-              throw new Error("Сумма должна быть неотрицательной");
+            const amount = 0;
             const counter =
               Math.max(
                 3,
@@ -179,7 +177,6 @@ export default function NewCaseModal({
           {[
             { name: "documentDate", label: "Дата документа" },
             { name: "received", label: "Дата получения документа" },
-            { name: "filed", label: "Дата подачи обращения" },
           ].map((field) => (
             <Field
               key={field.name}
@@ -191,19 +188,6 @@ export default function NewCaseModal({
               }}
             />
           ))}
-          <Field
-            field={{
-              name: "amount",
-              label:
-                type === "notice"
-                  ? "Сумма закупки, тенге"
-                  : "Оспариваемая сумма, тенге",
-              value: "0",
-              type: "number",
-              min: "0",
-              required: true,
-            }}
-          />
         </div>
         {type === "notice" && (
           <Field
