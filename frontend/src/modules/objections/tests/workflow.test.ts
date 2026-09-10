@@ -81,17 +81,11 @@ function analysis(h: Harness, partial = false) {
 }
 function prepare(h: Harness, partial = false) {
   screen(h);
-  h.run("request", "work", { text: "Представить материалы по доводам" });
-  h.run(
-    "position",
-    "dvga",
-    Object.fromEntries([
-      ["evidence", "Опись материалов"],
-      ...h.c.issues
-        .filter((point) => point.disputed)
-        .map((point) => [`position_${point.id}`, "Позиция ДВГА"]),
-    ]),
-  );
+  h.run("request", "work", {
+    recipient: "ДВГА по Атырауской области",
+    deadline: "2026-09-10T18:00",
+  });
+  h.run("position", "work", { evidence: "Опись материалов" });
   analysis(h, partial);
   h.run("members", "commission", {
     shared: "on",
@@ -473,11 +467,46 @@ test("дело открывает процесс, а одно действие �
   primaryAction(process())!();
   assert.deepEqual(selected, { action: "screen", role: "work" });
   screen(h);
-  h.run("request", "work", { text: "Позиция по спорным пунктам" });
-  assert.match(renderToStaticMarkup(process()), /Представить позицию ДВГА/);
+  h.run("request", "work", {
+    recipient: "ДВГА по Атырауской области",
+    deadline: "2026-09-10T18:00",
+  });
+  assert.ok(h.c.documents.some((document) => document.kind === "request"));
+  assert.ok(
+    h.c.documents.some((document) => document.kind === "request-appendix"),
+  );
+  h.c.appealDate = "2026-09-08";
+  h.c.appealNumber = "ВОЗ-77";
+  const requestDocument = h.c.documents.find(
+    (document) => document.kind === "request",
+  )!;
+  const requestHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "request",
+      document: requestDocument,
+    }),
+  );
+  assert.match(requestHtml, /ДВГА по Атырауской области/);
+  assert.match(requestHtml, /08\.09\.2026/);
+  assert.match(requestHtml, /ВОЗ-77/);
+  assert.match(requestHtml, /ГУ «Управление образования»/);
+  const appendixDocument = h.c.documents.find(
+    (document) => document.kind === "request-appendix",
+  )!;
+  const appendixHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "request-appendix",
+      document: appendixDocument,
+    }),
+  );
+  assert.match(appendixHtml, /Нарушение, по которым поступило возражение/);
+  assert.match(appendixHtml, /Требование к технической спецификации/);
+  assert.match(appendixHtml, /Описание соответствует функциональной потребности/);
+  assert.match(renderToStaticMarkup(process()), /Ответ получен/);
   primaryAction(process())!();
-  assert.deepEqual(selected, { action: "position", role: "dvga" });
-  assert.match(renderToStaticMarkup(process()), /Действие выполняет ДВГА/);
+  assert.deepEqual(selected, { action: "position", role: "work" });
 
   const control = harness(2);
   screen(control);
@@ -489,7 +518,7 @@ test("дело открывает процесс, а одно действие �
       onHistory() {},
     }),
   );
-  assert.match(controlHtml, /Рассмотреть передачу жалобы/);
+  assert.match(controlHtml, /Сформировать запрос/);
   assert.doesNotMatch(controlHtml, /Заседание, голоса и протокол/);
   assert.doesNotMatch(controlHtml, /Позиции комиссии/);
 });
