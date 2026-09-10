@@ -3,7 +3,11 @@ import { useState } from "react";
 import { Button, Modal } from "../../../components/ui";
 import { OUTCOMES } from "../../../data/constants";
 import type { CaseDocument, ObjectionCase } from "../../../types";
-import { formatDate, formatMoney } from "../../../utils/dateFormat";
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+} from "../../../utils/dateFormat";
 import { downloadFile } from "../../../utils/download";
 
 export function DocumentContent({
@@ -16,6 +20,9 @@ export function DocumentContent({
   document?: CaseDocument;
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
+  const request = document?.requestId
+    ? c.requests.find((item) => item.id === document.requestId)
+    : undefined;
   const title =
     document?.name ||
     (kind === "source"
@@ -89,6 +96,43 @@ export function DocumentContent({
           <p>
             <b>Подписант:</b> {c.applicant}. Подпись имитируется.
           </p>
+        </>
+      )}
+      {kind === "request" && request && (
+        <>
+          <p>
+            <b>{request.recipient}</b>
+          </p>
+          <p>
+            Қазақстан Республикасы Қаржы министрлігінің апелляциялық
+            комиссиясының қарауына «{c.org}»{" "}
+            {formatDate(c.appealDate || c.filed)}
+            жылғы №{c.appealNumber || c.document.number} камералдық бақылау
+            нәтижелері бойынша анықталған бұзушылықтарды жою туралы
+            хабарламаларда көрсетілген бұзушылықтарға қарсылықтарының келіп
+            түсуіне байланысты {formatDateTime(request.deadline)} мерзімде
+            қарсылықтың дәлелдері бойынша дәлелді жауапты және растайтын
+            құжаттарды қоса бере отырып ұсынуыңызды талап етеміз.
+          </p>
+          <p>Қосымша __ бетте.</p>
+        </>
+      )}
+      {kind === "request-appendix" && request && (
+        <>
+          <p>
+            <b>Приложение к запросу в {request.recipient}</b>
+          </p>
+          <p>
+            Материалы по обращению №{c.appealNumber || c.document.number} от{" "}
+            {formatDate(c.appealDate || c.filed)} в отношении «{c.org}».
+          </p>
+          <ol>
+            {c.documents
+              .filter((item) => item.kind === "attachment")
+              .map((item) => (
+                <li key={item.name}>{item.name}</li>
+              ))}
+          </ol>
         </>
       )}
       {kind === "protocol" && (
@@ -227,7 +271,14 @@ export function DocumentContent({
           )}
         </>
       )}
-      {!["source", "original", "result", "protocol"].includes(kind) && (
+      {![
+        "source",
+        "original",
+        "result",
+        "protocol",
+        "request",
+        "request-appendix",
+      ].includes(kind) && (
         <>
           <p>{document?.text}</p>
           {["analysis", "position"].includes(kind) &&
@@ -253,8 +304,7 @@ export function DocumentContent({
         </>
       )}
       <p className="document-footer">
-        Сформировано в тестовом модуле SAQ.{" "}
-        {document?.author || "Заявитель"}.{" "}
+        Сформировано в тестовом модуле SAQ. {document?.author || "Заявитель"}.{" "}
         {formatDate(document?.date || c.filed)}.
       </p>
     </article>
