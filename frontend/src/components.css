@@ -414,6 +414,48 @@
   margin-top: 48px;
   font-size: 13px;
 }
+.appendix-template {
+  padding: 42px;
+}
+.appendix-template-number {
+  margin: 0 0 18px !important;
+  text-align: right;
+}
+.appendix-template table {
+  table-layout: fixed;
+  font-size: 13px;
+}
+.appendix-template th,
+.appendix-template td {
+  border: 1px solid #111;
+  padding: 10px 8px;
+  vertical-align: top;
+  word-break: break-word;
+}
+.appendix-template th {
+  text-align: center;
+  font-size: 14px;
+  color: #111;
+  background: white;
+}
+.appendix-template th:first-child,
+.appendix-template td:first-child {
+  width: 6%;
+  text-align: center;
+  font-weight: 700;
+}
+.appendix-template th:nth-child(2),
+.appendix-template td:nth-child(2) {
+  width: 24%;
+}
+.appendix-template th:nth-child(3),
+.appendix-template td:nth-child(3) {
+  width: 31%;
+}
+.appendix-template th:nth-child(4),
+.appendix-template td:nth-child(4) {
+  width: 39%;
+}
 .response-receipt-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
