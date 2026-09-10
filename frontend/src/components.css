@@ -415,38 +415,47 @@
   font-size: 13px;
 }
 .appendix-template {
-  padding: 42px;
+  box-sizing: border-box;
+  min-height: 680px;
+  padding: 52px 54px 96px;
+  font-family: "Times New Roman", Times, serif;
 }
 .appendix-template-number {
-  margin: 0 0 18px !important;
+  margin: 0 14px 14px 0 !important;
+  font-size: 16px !important;
   text-align: right;
 }
 .appendix-template table {
+  width: 100%;
   table-layout: fixed;
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 1.35;
 }
 .appendix-template th,
 .appendix-template td {
   border: 1px solid #111;
-  padding: 10px 8px;
+  padding: 7px 9px;
   vertical-align: top;
   word-break: break-word;
 }
 .appendix-template th {
   text-align: center;
-  font-size: 14px;
+  font-size: 17px;
   color: #111;
   background: white;
 }
+.appendix-template tbody tr {
+  height: 40px;
+}
 .appendix-template th:first-child,
 .appendix-template td:first-child {
-  width: 6%;
+  width: 5%;
   text-align: center;
   font-weight: 700;
 }
 .appendix-template th:nth-child(2),
 .appendix-template td:nth-child(2) {
-  width: 24%;
+  width: 23%;
 }
 .appendix-template th:nth-child(3),
 .appendix-template td:nth-child(3) {
@@ -454,7 +463,7 @@
 }
 .appendix-template th:nth-child(4),
 .appendix-template td:nth-child(4) {
-  width: 39%;
+  width: 41%;
 }
 .response-receipt-grid {
   display: grid;
