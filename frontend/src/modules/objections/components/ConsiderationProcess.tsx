@@ -16,7 +16,7 @@ const OBJECTION_STAGES: ProcessStage[] = [
     statuses: ["received"],
   },
   {
-    label: "Формирование запроса в ДВГА/КВГА, уполномоченные органы и др.",
+    label: "Запрос в ДВГА/КВГА и др.",
     description: "Подготовка и направление запросов, получение ответов",
     statuses: ["accepted", "requested", "materials"],
   },
@@ -44,7 +44,7 @@ const CONTROL_STAGES: ProcessStage[] = [
     statuses: ["received"],
   },
   {
-    label: "Формирование запроса в ДВГА/КВГА, уполномоченные органы и др.",
+    label: "Запрос в ДВГА/КВГА и др.",
     description: "Подготовка и направление запросов, получение ответов",
     statuses: ["accepted", "forwarded", "materials"],
   },
