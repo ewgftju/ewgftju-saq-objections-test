@@ -74,6 +74,38 @@ export function DocumentContent({
       </article>
     );
 
+  if (kind === "request-appendix")
+    return (
+      <article className="print-document appendix-template">
+        <p className="appendix-template-number">Таблица №1</p>
+        <table>
+          <thead>
+            <tr>
+              <th>№ п-п</th>
+              <th>Нарушение, по которым поступило возражение</th>
+              <th>Возражение объекта аудита</th>
+              <th>
+                Мотивированный ответ ДВГА по доводам возражения объекта аудита
+                с приложением подтверждающих документов по фактам нарушений
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {snapshot.issues
+              .filter((point) => point.disputed)
+              .map((point) => (
+                <tr key={point.id}>
+                  <td>{point.number}</td>
+                  <td>{point.title}</td>
+                  <td>{point.argument}</td>
+                  <td aria-label="Мотивированный ответ ДВГА" />
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </article>
+    );
+
   return (
     <article className="print-document">
       <p className="document-watermark">
@@ -138,24 +170,6 @@ export function DocumentContent({
           <p>
             <b>Подписант:</b> {c.applicant}. Подпись имитируется.
           </p>
-        </>
-      )}
-      {kind === "request-appendix" && request && (
-        <>
-          <p>
-            <b>Приложение к запросу в {request.recipient}</b>
-          </p>
-          <p>
-            Материалы по обращению №{c.appealNumber || c.document.number} от{" "}
-            {formatDate(c.appealDate || c.filed)} в отношении «{c.org}».
-          </p>
-          <ol>
-            {c.documents
-              .filter((item) => item.kind === "attachment")
-              .map((item) => (
-                <li key={item.name}>{item.name}</li>
-              ))}
-          </ol>
         </>
       )}
       {kind === "protocol" && (
