@@ -5,6 +5,7 @@ import { actionForm } from "../formDefinitions";
 import type { FormField, FormValues } from "../formDefinitions";
 import { disputed } from "../services/decisions";
 import { OUTCOMES } from "../../../data/constants";
+import { DocumentContent } from "./DocumentModal";
 
 export function Field({ field }: { field: FormField }) {
   if (field.type === "heading")
@@ -170,9 +171,18 @@ export default function ActionModal({
 }) {
   const [values, setValues] = useState<FormValues>({});
   const [error, setError] = useState("");
+  const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const definition = actionForm(action, c, date, values);
+  const requestDeadline =
+    values.deadline ||
+    definition.fields.find((field) => field.name === "deadline")?.value ||
+    `${date}T18:00`;
   return (
-    <Modal title={definition.title} onClose={onClose} wide={action === "vote"}>
+    <Modal
+      title={definition.title}
+      onClose={onClose}
+      wide={action === "vote" || action === "request"}
+    >
       <form
         onChange={(event) => {
           const form = event.currentTarget;
@@ -203,11 +213,59 @@ export default function ActionModal({
           }
         }}
       >
-        {definition.note && <Notice>{definition.note}</Notice>}
-
-        {definition.fields.map((field) => (
-          <Field key={field.name} field={field} />
-        ))}
+        {action === "request" ? (
+          <>
+            <div className="request-modal-details">
+              <div>
+                <span>Автор</span>
+                <b>Исполнитель</b>
+              </div>
+              <div>
+                <span>Печатная форма</span>
+                <b>Формируется по шаблону</b>
+              </div>
+            </div>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <div className="request-modal-tabs" role="tablist">
+              <button
+                type="button"
+                className={requestTab === "form" ? "active" : ""}
+                onClick={() => setRequestTab("form")}
+              >
+                Электронная форма
+              </button>
+              <button
+                type="button"
+                className={requestTab === "print" ? "active" : ""}
+                onClick={() => setRequestTab("print")}
+              >
+                Печатная форма
+              </button>
+            </div>
+            <div hidden={requestTab !== "form"} className="form-grid">
+              {definition.fields.map((field) => (
+                <Field key={field.name} field={field} />
+              ))}
+            </div>
+            <div hidden={requestTab !== "print"} className="request-print-preview">
+              <DocumentContent
+                c={c}
+                kind="request"
+                requestPreview={{
+                  recipient: values.recipient || "",
+                  deadline: requestDeadline,
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            {definition.fields.map((field) => (
+              <Field key={field.name} field={field} />
+            ))}
+          </>
+        )}
         {action === "vote" && (
           <>
             <Button
