@@ -34,17 +34,15 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Проверить поступление",
       role: "work",
     },
-    accepted: control
-      ? {
-          action: "forward",
-          label: "Рассмотреть передачу жалобы",
-          role: "dvga",
-        }
-      : { action: "request", label: "Запросить позицию ДВГА", role: "work" },
+    accepted: {
+      action: "request",
+      label: "Сформировать запрос",
+      role: "work",
+    },
     requested: {
       action: "position",
-      label: "Представить позицию ДВГА",
-      role: "dvga",
+      label: "Ответ получен",
+      role: "work",
     },
     materials: {
       action: control ? "control-analysis" : "analysis",
@@ -119,6 +117,18 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
     !CLOSED.includes(c.status) &&
     !["protocol", "decided", "delivered", "court"].includes(c.status);
   if (active) {
+    if (c.type === "control" && c.status === "accepted")
+      options.push({
+        action: "forward",
+        label: "Передать жалобу по компетенции",
+        role: "dvga",
+      });
+    if (c.status === "requested")
+      options.push({
+        action: "request",
+        label: "Сформировать ещё один запрос",
+        role: "work",
+      });
     if (c.type !== "control") {
       options.push({
         action: "supplement",
@@ -228,6 +238,7 @@ export function addDocument(
   name: string,
   kind: string,
   text: string,
+  requestId?: string,
 ) {
   c.documents.push({
     name,
@@ -235,6 +246,7 @@ export function addDocument(
     text,
     date,
     author: ROLES[role],
+    requestId,
     snapshot: structuredClone({
       issues: c.issues,
       result: c.result || null,
@@ -265,8 +277,12 @@ export function applyAction(
     throw new Error("Действие недоступно на этом этапе или для выбранной роли");
   const date = actionDate(next, c, form);
   const text = (name: string, label?: string) => required(form, name, label);
-  const doc = (name: string, kind: string, content: string) =>
-    addDocument(c, role, date, name, kind, content);
+  const doc = (
+    name: string,
+    kind: string,
+    content: string,
+    requestId?: string,
+  ) => addDocument(c, role, date, name, kind, content, requestId);
   let title: string = available.label;
   let note = "";
 
@@ -296,27 +312,35 @@ export function applyAction(
       note = c.screening;
       break;
     }
-    case "request":
-      note = text("text", "Содержание запроса");
+    case "request": {
+      const recipient = text("recipient", "Кому направить запрос");
+      const deadline = text("deadline", "Срок рассмотрения");
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(deadline))
+        throw new Error("Укажите дату и время срока рассмотрения");
+      const requestId = `request-${c.requests.length + 1}`;
+      note = `Запрос сформирован для ${recipient}. Срок рассмотрения: ${deadline}.`;
       c.requests.push({
-        recipient: c.issuer,
+        id: requestId,
+        recipient,
         date,
         text: note,
-        deadline: addWorkdays(date, 2),
+        deadline,
       });
       c.status = "requested";
-      doc("Запрос позиции ДВГА", "request", note);
+      doc(`Запрос в ${recipient}`, "request", note, requestId);
+      doc(
+        `Приложение к запросу в ${recipient}`,
+        "request-appendix",
+        `Приложение к запросу в ${recipient}.`,
+        requestId,
+      );
       break;
+    }
     case "position":
-      for (const point of disputed(c))
-        point.position = text(
-          `position_${point.id}`,
-          `Позиция по пункту ${point.number}`,
-        );
       note = text("evidence", "Опись доказательств");
       if (c.requests.length) c.requests[c.requests.length - 1].responded = date;
       c.status = "materials";
-      doc("Позиция ДВГА и материалы", "position", note);
+      doc("Полученные материалы по запросу", "position", note);
       break;
     case "analysis":
     case "control-analysis": {
