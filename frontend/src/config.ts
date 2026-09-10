@@ -1,4 +1,4 @@
-export const MAIN_MENU_URL = "http://89.126.192.16/";
+export const MAIN_MENU_URL = "https://smartaudit.kz/";
 
 export const DEMO_USER = {
   fullName: "Жукенов Каримжан Амангельдыевич",
