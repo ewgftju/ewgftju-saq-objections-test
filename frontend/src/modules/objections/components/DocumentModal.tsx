@@ -2,7 +2,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { useState } from "react";
 import { Button, Modal } from "../../../components/ui";
 import { OUTCOMES } from "../../../data/constants";
-import type { CaseDocument, CaseRequest, ObjectionCase } from "../../../types";
+import type {
+  CaseCertificate,
+  CaseDocument,
+  CaseRequest,
+  ObjectionCase,
+} from "../../../types";
 import {
   formatDate,
   formatDateTime,
@@ -16,12 +21,14 @@ export function DocumentContent({
   document,
   requestPreview,
   appendixPreview,
+  certificatePreview,
 }: {
   c: ObjectionCase;
   kind: string;
   document?: CaseDocument;
   requestPreview?: Pick<CaseRequest, "recipient" | "deadline">;
   appendixPreview?: Record<string, string>;
+  certificatePreview?: CaseCertificate;
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
   const request =
@@ -29,6 +36,7 @@ export function DocumentContent({
     (document?.requestId
       ? c.requests.find((item) => item.id === document.requestId)
       : undefined);
+  const certificate = certificatePreview || snapshot.certificate || undefined;
   const title =
     document?.name ||
     (kind === "source"
@@ -109,6 +117,66 @@ export function DocumentContent({
         </table>
       </article>
     );
+
+  if (kind === "certificate") {
+    const applicantArguments = snapshot.issues
+      .filter((point) => point.disputed)
+      .map((point) => point.argument)
+      .join("\n");
+    const disputedPoints = snapshot.issues
+      .filter((point) => point.disputed)
+      .map((point) => point.title)
+      .join("; ");
+    return (
+      <article className="print-document certificate-template">
+        <h1>Справка</h1>
+        <h2>по результатам изучения и анализа возражения</h2>
+        <p className="certificate-template-intro">
+          В Министерство финансов Республики Казахстан поступило возражение от{" "}
+          {formatDate(snapshot.appealDate || snapshot.filed)} года №
+          {snapshot.appealNumber || snapshot.document.number} «{snapshot.org}»,
+          БИН {snapshot.bin} (далее – объект государственного аудита) к
+          уведомлению {snapshot.issuer} от {formatDate(snapshot.document.date)}
+          года №{snapshot.document.number}.
+        </p>
+        <p className="certificate-template-point-list">{disputedPoints || "—"}</p>
+        <p className="certificate-template-lead">
+          По результатам проведенного анализа рабочий орган (ДАВГА) сообщает
+          следующее:
+        </p>
+        <p className="certificate-template-line">
+          <b>Доводы ДВГА:</b> {certificate?.authorityArguments || "—"}
+        </p>
+        <p className="certificate-template-line">
+          <b>Доводы объекта гос. аудита (заявителя):</b>{" "}
+          {applicantArguments || "—"}
+        </p>
+        <p className="certificate-template-section-title">
+          Доводы рабочего органа (ДАВГА МФ РК)
+        </p>
+        <table className="certificate-members-table">
+          <tbody>
+            <tr>
+              {(certificate?.memberPositions.length
+                ? certificate.memberPositions
+                : [{ id: "preview", name: "ФИО члена АК", argument: "" }]
+              ).map((member) => (
+                <th key={member.id}>{member.name}</th>
+              ))}
+            </tr>
+            <tr>
+              {(certificate?.memberPositions.length
+                ? certificate.memberPositions
+                : [{ id: "preview", name: "", argument: "Довод" }]
+              ).map((member) => (
+                <td key={member.id}>{member.argument || "—"}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    );
+  }
 
   return (
     <article className="print-document">
@@ -360,7 +428,7 @@ export default function DocumentModal(props: {
 }) {
   const [error, setError] = useState("");
   const css =
-    "body{font:14px Arial,sans-serif;line-height:1.6;color:#111;max-width:850px;margin:28px auto;padding:24px}h2{text-align:center}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:8px;text-align:left}.document-watermark{color:#555;text-align:center;font-size:11px}.document-footer{font-size:12px;border-top:1px solid #bbb;padding-top:16px}.appendix-template{box-sizing:border-box;min-height:680px;padding:52px 54px 96px;font-family:'Times New Roman',Times,serif}.appendix-template-number{margin:0 14px 14px 0!important;font-size:16px!important;text-align:right}.appendix-template table{table-layout:fixed;font-size:16px;line-height:1.35}.appendix-template th,.appendix-template td{border:1px solid #111;padding:7px 9px;vertical-align:top;word-break:break-word}.appendix-template th{text-align:center;font-size:17px;background:white}.appendix-template tbody tr{height:40px}.appendix-template th:first-child,.appendix-template td:first-child{width:5%;text-align:center;font-weight:bold}.appendix-template th:nth-child(2),.appendix-template td:nth-child(2){width:23%}.appendix-template th:nth-child(3),.appendix-template td:nth-child(3){width:31%}.appendix-template th:nth-child(4),.appendix-template td:nth-child(4){width:41%}@page{size:A4;margin:18mm}";
+    "body{font:14px Arial,sans-serif;line-height:1.6;color:#111;max-width:850px;margin:28px auto;padding:24px}h2{text-align:center}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:8px;text-align:left}.document-watermark{color:#555;text-align:center;font-size:11px}.document-footer{font-size:12px;border-top:1px solid #bbb;padding-top:16px}.appendix-template{box-sizing:border-box;min-height:680px;padding:52px 54px 96px;font-family:'Times New Roman',Times,serif}.appendix-template-number{margin:0 14px 14px 0!important;font-size:16px!important;text-align:right}.appendix-template table{table-layout:fixed;font-size:16px;line-height:1.35}.appendix-template th,.appendix-template td{border:1px solid #111;padding:7px 9px;vertical-align:top;word-break:break-word}.appendix-template th{text-align:center;font-size:17px;background:white}.appendix-template tbody tr{height:40px}.appendix-template th:first-child,.appendix-template td:first-child{width:5%;text-align:center;font-weight:bold}.appendix-template th:nth-child(2),.appendix-template td:nth-child(2){width:23%}.appendix-template th:nth-child(3),.appendix-template td:nth-child(3){width:31%}.appendix-template th:nth-child(4),.appendix-template td:nth-child(4){width:41%}.certificate-template{box-sizing:border-box;min-height:900px;padding:58px 68px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.45}.certificate-template h1,.certificate-template h2{text-align:center;font-size:22px;margin:0;font-weight:700}.certificate-template h2{font-size:20px;margin-bottom:34px}.certificate-template-intro{text-align:justify;text-indent:28px}.certificate-template-point-list{margin:28px 46px}.certificate-template-lead{margin-top:30px;font-weight:700;text-align:center}.certificate-template-line{border-bottom:2px solid #111;padding:6px 0;margin:20px 0}.certificate-template-section-title{margin:28px 0 12px 46px;font-size:20px;font-weight:700}.certificate-members-table{table-layout:fixed}.certificate-members-table th,.certificate-members-table td{border:1px solid #111;padding:10px;vertical-align:top;white-space:pre-wrap}.certificate-members-table th{text-align:center;font-weight:700}@page{size:A4;margin:18mm}";
   const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>SAQ — документ</title><style>${css}</style></head><body>${renderToStaticMarkup(<DocumentContent {...props} />)}</body></html>`;
   return (
     <Modal title="Просмотр документа" onClose={props.onClose} wide>
