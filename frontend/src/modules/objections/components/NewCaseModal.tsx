@@ -48,7 +48,7 @@ export default function NewCaseModal({
   onSave: (state: DemoState, caseId: string) => void;
   onClose: () => void;
 }) {
-  const [appealType, setAppealType] = useState(APPEAL_TYPES[0].value);
+  const [appealType, setAppealType] = useState<string>(APPEAL_TYPES[0].value);
   const [error, setError] = useState("");
   const selectedAppealType =
     APPEAL_TYPES.find((item) => item.value === appealType) ?? APPEAL_TYPES[0];
