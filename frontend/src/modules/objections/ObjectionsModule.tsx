@@ -88,8 +88,9 @@ export default function ObjectionsModule() {
   }
 
   async function submitAction(action: Action, form: FormData) {
-    if (action !== "position" || !c) {
-      model.perform(c!.id, action, form);
+    if (!c) return;
+    if (!["position", "fill-request-response"].includes(action)) {
+      model.perform(c.id, action, form);
       return;
     }
     const files = form
@@ -97,7 +98,8 @@ export default function ObjectionsModule() {
       .filter(
         (item): item is File => item instanceof File && item.name.length > 0,
       );
-    if (!files.length) throw new Error("Вложите хотя бы один полученный файл");
+    if (action === "position" && !files.length)
+      throw new Error("Вложите хотя бы один полученный файл");
     for (const file of files) {
       if (file.size > 2 * 1024 * 1024)
         throw new Error(`Файл «${file.name}» превышает 2 МБ`);
@@ -117,24 +119,40 @@ export default function ObjectionsModule() {
     );
     const next = applyAction(model.state, c.id, action, model.role, form);
     const updated = next.cases.find((item) => item.id === c.id)!;
-    updated.documents.push(
-      ...attached.map(({ file, dataUrl }) => ({
-        name: file.name,
-        filename: file.name,
-        kind: "response-attachment",
-        text: "Полученный ответ на запрос",
-        author: ROLES[model.role],
+    if (attached.length) {
+      updated.documents.push(
+        ...attached.map(({ file, dataUrl }) => ({
+          name: file.name,
+          filename: file.name,
+          kind:
+            action === "fill-request-response"
+              ? "authority-response-attachment"
+              : "response-attachment",
+          text:
+            action === "fill-request-response"
+              ? "Подтверждающий документ ДВГА/КВГА"
+              : "Полученный ответ на запрос",
+          author: ROLES[model.role],
+          date: next.date,
+          dataUrl,
+        })),
+      );
+      updated.history.push({
         date: next.date,
-        dataUrl,
-      })),
+        actor: ROLES[model.role],
+        title:
+          action === "fill-request-response"
+            ? "Вложены документы ДВГА/КВГА"
+            : "Вложены полученные файлы",
+        text: attached.map(({ file }) => file.name).join(", "),
+      });
+    }
+    model.commit(
+      next,
+      action === "fill-request-response"
+        ? "Ответ ДВГА/КВГА и вложения сохранены"
+        : "Полученный ответ и вложения сохранены",
     );
-    updated.history.push({
-      date: next.date,
-      actor: ROLES[model.role],
-      title: "Вложены полученные файлы",
-      text: attached.map(({ file }) => file.name).join(", "),
-    });
-    model.commit(next, "Полученный ответ и вложения сохранены");
   }
 
   return (
