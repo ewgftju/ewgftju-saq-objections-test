@@ -319,6 +319,18 @@ export default function ActionModal({
             {definition.fields.map((field) => (
               <Field key={field.name} field={field} />
             ))}
+            {action === "fill-request-response" && (
+              <label className="field">
+                <span>Подтверждающие документы</span>
+                <input
+                  type="file"
+                  name="responseFiles"
+                  accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
+                  multiple
+                />
+                <small>Можно вложить несколько файлов до 2 МБ каждый.</small>
+              </label>
+            )}
           </>
         )}
         {action === "vote" && (
