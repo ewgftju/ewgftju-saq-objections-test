@@ -1,11 +1,43 @@
 import { useState } from "react";
 import { Button, Modal, Notice } from "../../../components/ui";
-import { TYPES } from "../../../data/constants";
 import { makeCase } from "../../../data/objections";
 import type { CaseType, DemoState } from "../../../types";
 import { dateObject } from "../services/deadlines";
 import { required } from "../services/workflow";
 import { Field } from "./ActionModal";
+
+const APPEAL_TYPES = [
+  { value: "statement", label: "Заявление", caseType: "control" },
+  {
+    value: "preventive-control-complaint",
+    label: "Жалоба на акт о результате профилактического контроля",
+    caseType: "control",
+  },
+  {
+    value: "action-inaction-complaint",
+    label: "Жалоба на действие/бездействие",
+    caseType: "control",
+  },
+  {
+    value: "kvga-dvga-decision-complaint",
+    label: "Жалоба на решение КВГА/ДВГА",
+    caseType: "control",
+  },
+  {
+    value: "notice-objection",
+    label: "Возражение на уведомления",
+    caseType: "notice",
+  },
+  {
+    value: "audit-objection",
+    label: "Возражение на аудиторский отчет",
+    caseType: "audit",
+  },
+] as const satisfies ReadonlyArray<{
+  value: string;
+  label: string;
+  caseType: CaseType;
+}>;
 
 export default function NewCaseModal({
   state,
@@ -16,8 +48,11 @@ export default function NewCaseModal({
   onSave: (state: DemoState, caseId: string) => void;
   onClose: () => void;
 }) {
-  const [type, setType] = useState<CaseType>("notice");
+  const [appealType, setAppealType] = useState(APPEAL_TYPES[0].value);
   const [error, setError] = useState("");
+  const selectedAppealType =
+    APPEAL_TYPES.find((item) => item.value === appealType) ?? APPEAL_TYPES[0];
+  const type = selectedAppealType.caseType;
   return (
     <Modal title="Новое тестовое обращение" onClose={onClose}>
       <form
@@ -113,10 +148,10 @@ export default function NewCaseModal({
         <label className="field">
           <span>Вид обращения</span>
           <select
-            value={type}
-            onChange={(event) => setType(event.target.value as CaseType)}
+            value={appealType}
+            onChange={(event) => setAppealType(event.target.value)}
           >
-            {Object.entries(TYPES).map(([value, label]) => (
+            {APPEAL_TYPES.map(({ value, label }) => (
               <option value={value} key={value}>
                 {label}
               </option>
