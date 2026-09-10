@@ -465,6 +465,51 @@
 .appendix-template td:nth-child(4) {
   width: 41%;
 }
+.request-package {
+  margin: 14px 0;
+  padding: 16px;
+  border: 1px solid #bdd7e8;
+  border-left: 3px solid var(--blue);
+  border-radius: 6px;
+  background: #f7fbfd;
+}
+.request-package-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.request-package-head p {
+  margin: 7px 0;
+  font-size: 14px;
+}
+.request-package-head small {
+  color: var(--muted);
+  font-size: 13px;
+}
+.request-package-documents {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 13px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: white;
+}
+.request-package-documents > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .request-package-head,
+  .request-package-documents > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
 .response-receipt-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
