@@ -15,11 +15,13 @@ export function DocumentContent({
   kind,
   document,
   requestPreview,
+  appendixPreview,
 }: {
   c: ObjectionCase;
   kind: string;
   document?: CaseDocument;
   requestPreview?: Pick<CaseRequest, "recipient" | "deadline">;
+  appendixPreview?: Record<string, string>;
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
   const request =
@@ -98,7 +100,9 @@ export function DocumentContent({
                   <td>{point.number}</td>
                   <td>{point.title}</td>
                   <td>{point.argument}</td>
-                  <td aria-label="Мотивированный ответ ДВГА" />
+                  <td aria-label="Мотивированный ответ ДВГА">
+                    {appendixPreview?.[point.id] ?? point.position ?? ""}
+                  </td>
                 </tr>
               ))}
           </tbody>
