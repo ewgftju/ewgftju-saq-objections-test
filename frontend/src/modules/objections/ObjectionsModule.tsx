@@ -16,6 +16,7 @@ import {
   SourcesPage,
 } from "./pages/ReferencePages";
 import { dateObject } from "./services/deadlines";
+import { applyAction } from "./services/workflow";
 import { useObjectionsModel } from "./useObjectionsModel";
 
 type DialogState =
@@ -86,6 +87,56 @@ export default function ObjectionsModule() {
     }
   }
 
+  async function submitAction(action: Action, form: FormData) {
+    if (action !== "position" || !c) {
+      model.perform(c!.id, action, form);
+      return;
+    }
+    const files = form
+      .getAll("responseFiles")
+      .filter(
+        (item): item is File => item instanceof File && item.name.length > 0,
+      );
+    if (!files.length) throw new Error("Вложите хотя бы один полученный файл");
+    for (const file of files) {
+      if (file.size > 2 * 1024 * 1024)
+        throw new Error(`Файл «${file.name}» превышает 2 МБ`);
+      if (!/\.(pdf|png|jpe?g|docx?|xlsx?|txt)$/i.test(file.name))
+        throw new Error("Поддерживаются PDF, PNG, JPG, DOC(X), XLS(X), TXT");
+    }
+    const attached = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise<{ file: File; dataUrl: string }>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({ file, dataUrl: String(reader.result) });
+            reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
+            reader.readAsDataURL(file);
+          }),
+      ),
+    );
+    const next = applyAction(model.state, c.id, action, model.role, form);
+    const updated = next.cases.find((item) => item.id === c.id)!;
+    updated.documents.push(
+      ...attached.map(({ file, dataUrl }) => ({
+        name: file.name,
+        filename: file.name,
+        kind: "response-attachment",
+        text: "Полученный ответ на запрос",
+        author: ROLES[model.role],
+        date: next.date,
+        dataUrl,
+      })),
+    );
+    updated.history.push({
+      date: next.date,
+      actor: ROLES[model.role],
+      title: "Вложены полученные файлы",
+      text: attached.map(({ file }) => file.name).join(", "),
+    });
+    model.commit(next, "Полученный ответ и вложения сохранены");
+  }
+
   return (
     <AppShell
       route={model.route}
@@ -152,7 +203,7 @@ export default function ObjectionsModule() {
           c={c}
           date={model.state.date}
           onClose={close}
-          onSubmit={(form) => model.perform(c.id, dialog.action, form)}
+          onSubmit={(form) => submitAction(dialog.action, form)}
         />
       )}
       {dialog?.type === "document" && c && (
