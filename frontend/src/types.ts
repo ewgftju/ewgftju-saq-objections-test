@@ -124,6 +124,9 @@ export interface HistoryEvent {
 export interface ObjectionCase {
   id: string;
   type: CaseType;
+  appealType?: string;
+  appealNumber?: string;
+  appealDate?: string;
   org: string;
   bin: string;
   address: string;
@@ -183,6 +186,9 @@ export type NewCaseInput = Pick<
   ObjectionCase,
   | "id"
   | "type"
+  | "appealType"
+  | "appealNumber"
+  | "appealDate"
   | "org"
   | "bin"
   | "address"
