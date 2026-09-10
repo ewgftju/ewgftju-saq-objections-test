@@ -29,14 +29,14 @@ const OBJECTION_STAGES: ProcessStage[] = [
     ],
   },
   {
-    label: "Подготовка",
-    description: "Позиции комиссии и заслушивание",
-    statuses: ["circulated", "hearing", "hearing_ready"],
+    label: "Заседание",
+    description: "Проведение заседания по делу",
+    statuses: ["circulated"],
   },
   {
     label: "Решение",
-    description: "Заседание, голоса и протокол",
-    statuses: ["meeting", "protocol"],
+    description: "Голоса и протокол",
+    statuses: ["hearing", "hearing_ready", "meeting", "protocol"],
   },
   {
     label: "Исполнение",
@@ -96,7 +96,7 @@ const TASK_HELP: Partial<Record<Action, string>> = {
   "send-certificate-to-commission":
     "Направьте согласованную справку и все документы по обращению членам апелляционной комиссии для ознакомления.",
   members:
-    "Зафиксируйте позиции членов апелляционной комиссии по подготовленным материалам.",
+    "Подтвердите, что заседание по данному делу проведено. После этого обращение перейдёт на этап принятия решения.",
   hearing:
     "Укажите порядок извещения и дату заслушивания. Если применяется предусмотренное основание для его непроведения, зафиксируйте его в форме.",
   "hearing-held":
