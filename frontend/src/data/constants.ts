@@ -1,10 +1,7 @@
 export const TYPES = {
-  statement: "Заявление",
-  preventive_control_act_complaint: "Жалоба на акт о результате профилактического контроля",
-  action_inaction_complaint: "Жалоба на действие/бездействие",
-  kvga_dvga_decision_complaint: "Жалоба на решение КВГА/ДВГА",
-  notice_objection: "Возражение на уведомления",
-  audit_report_objection: "Возражение на аудиторский отчет",
+  notice: "На уведомление",
+  audit: "На аудиторский отчёт",
+  control: "На акт о результатах",
 } as const;
 export const ROLES = {
   work: "Рабочий орган",
