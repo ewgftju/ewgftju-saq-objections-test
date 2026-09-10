@@ -65,6 +65,16 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
           label: "Ответ получен",
           role: "work",
         },
+    certificate_approval: {
+      action: "approve-certificate",
+      label: "Согласовать справку",
+      role: "director",
+    },
+    certificate_approved: {
+      action: "send-certificate-to-commission",
+      label: "Направить справку и документы членам АК",
+      role: "work",
+    },
     materials: {
       action: control ? "control-analysis" : "analysis",
       label: control ? "Изучить административное дело" : "Сформировать справку",
@@ -376,6 +386,23 @@ export function applyAction(
         : "Согласованный запрос ожидает поступления ответа.";
       break;
     }
+    case "approve-certificate": {
+      if (!c.certificate)
+        throw new Error("Сначала сформируйте справку по доводам");
+      c.status = "certificate_approved";
+      title = "Справка согласована";
+      note = "Справка готова к направлению вместе со всеми материалами членам апелляционной комиссии.";
+      break;
+    }
+    case "send-certificate-to-commission": {
+      if (!c.certificate)
+        throw new Error("Справка по доводам не сформирована");
+      c.status = "circulated";
+      title = "Справка и материалы направлены членам АК";
+      note = "Справка и все документы по обращению направлены членам апелляционной комиссии для ознакомления.";
+      doc("Справка и материалы для членов АК", "circulation", note);
+      break;
+    }
     case "fill-request-response": {
       if (!directedToDvgaOrKvga(c))
         throw new Error("Это действие доступно только для запроса в ДВГА/КВГА");
@@ -428,7 +455,7 @@ export function applyAction(
           authorityArguments: text("authorityArguments", "Доводы ДВГА"),
           memberPositions,
         };
-        c.status = "circulated";
+        c.status = "certificate_approval";
         c.result = null;
         c.votes = null;
         c.meeting = null;
