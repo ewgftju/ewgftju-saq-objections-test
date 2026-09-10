@@ -130,7 +130,6 @@ export function actionForm(
     case "position":
       title = "Ответ получен";
       fields[0] = input("date", "Дата получения ответа", date, "date");
-      fields.push(area("evidence", "Краткое описание полученных материалов"));
       note =
         "Вложите все полученные от адресата документы и сохраните подтверждение поступления ответа.";
       break;
