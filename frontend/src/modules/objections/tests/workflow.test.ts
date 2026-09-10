@@ -85,7 +85,20 @@ function prepare(h: Harness, partial = false) {
     recipient: "ДВГА по Атырауской области",
     deadline: "2026-09-10T18:00",
   });
-  h.run("position", "work", { evidence: "Опись материалов" });
+  h.run("send-request-approval", "work");
+  h.run("approve-request", "director", { approved: "on" });
+  h.run(
+    "fill-request-response",
+    "dvga",
+    Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .map((point) => [
+          `authorityResponse_${point.id}`,
+          "Мотивированный ответ ДВГА (демо)",
+        ]),
+    ),
+  );
   analysis(h, partial);
   h.run("members", "commission", {
     shared: "on",
@@ -504,9 +517,16 @@ test("дело открывает процесс, а одно действие �
   assert.match(appendixHtml, /Нарушение, по которым поступило возражение/);
   assert.match(appendixHtml, /Требование к технической спецификации/);
   assert.match(appendixHtml, /Описание соответствует функциональной потребности/);
-  assert.match(renderToStaticMarkup(process()), /Ответ получен/);
+  assert.match(renderToStaticMarkup(process()), /Отправить на согласование/);
   primaryAction(process())!();
-  assert.deepEqual(selected, { action: "position", role: "work" });
+  assert.deepEqual(selected, {
+    action: "send-request-approval",
+    role: "work",
+  });
+  h.run("send-request-approval", "work");
+  assert.match(renderToStaticMarkup(process()), /Согласовать запрос/);
+  h.run("approve-request", "director", { approved: "on" });
+  assert.match(renderToStaticMarkup(process()), /Заполнить ответ ДВГА\/КВГА/);
 
   const control = harness(2);
   screen(control);
