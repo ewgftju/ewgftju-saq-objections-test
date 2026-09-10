@@ -91,10 +91,14 @@ export default function NewCaseModal({
             const bin = get("bin", "БИН");
             if (!/^\d{12}$/.test(bin))
               throw new Error("БИН должен содержать 12 цифр");
+            const appealDate = get(
+              "appealDate",
+              "Дата возражения, жалобы, заявления",
+            );
             const received = get("received", "Дата получения документа");
             const filed = state.date;
             const documentDate = get("documentDate", "Дата документа");
-            [received, filed, documentDate].forEach(dateObject);
+            [appealDate, received, filed, documentDate].forEach(dateObject);
             if (
               documentDate > received ||
               received > filed ||
@@ -113,6 +117,12 @@ export default function NewCaseModal({
             const c = makeCase({
               id,
               type,
+              appealType: selectedAppealType.label,
+              appealNumber: get(
+                "appealNumber",
+                "Номер возражения, жалобы, заявления",
+              ),
+              appealDate,
               org: get("org", "Объект"),
               bin,
               address: get("address", "Местонахождение"),
@@ -205,6 +215,10 @@ export default function NewCaseModal({
           {[
             { name: "org", label: "Наименование объекта аудита/заявителя" },
             { name: "bin", label: "БИН/ИИН" },
+            {
+              name: "appealNumber",
+              label: "Номер возражения, жалобы, заявления",
+            },
             { name: "address", label: "Местонахождение" },
             { name: "applicant", label: "Представитель" },
             {
@@ -220,6 +234,10 @@ export default function NewCaseModal({
             />
           ))}
           {[
+            {
+              name: "appealDate",
+              label: "Дата возражения, жалобы, заявления",
+            },
             { name: "documentDate", label: "Дата документа" },
             { name: "received", label: "Дата получения документа" },
           ].map((field) => (
