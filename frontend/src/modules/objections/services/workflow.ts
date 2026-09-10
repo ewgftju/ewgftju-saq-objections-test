@@ -25,6 +25,11 @@ export const controlDecisions = [
   ["without", "Оставить жалобу без рассмотрения"],
 ] as const;
 
+function directedToDvgaOrKvga(c: ObjectionCase) {
+  const recipient = c.requests.at(-1)?.recipient.toUpperCase() || "";
+  return recipient.includes("ДВГА") || recipient.includes("КВГА");
+}
+
 export function nextAction(c: ObjectionCase): ActionOption | null {
   const control = c.type === "control";
   const reviewer: Role = control ? "higher" : "work";
@@ -40,10 +45,26 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       role: "work",
     },
     requested: {
-      action: "position",
-      label: "Ответ получен",
+      action: "send-request-approval",
+      label: "Отправить на согласование",
       role: "work",
     },
+    request_approval: {
+      action: "approve-request",
+      label: "Согласовать запрос",
+      role: "director",
+    },
+    request_approved: directedToDvgaOrKvga(c)
+      ? {
+          action: "fill-request-response",
+          label: "Заполнить ответ ДВГА/КВГА",
+          role: "dvga",
+        }
+      : {
+          action: "position",
+          label: "Ответ получен",
+          role: "work",
+        },
     materials: {
       action: control ? "control-analysis" : "analysis",
       label: "Подготовить анализ по доводам",
@@ -334,6 +355,49 @@ export function applyAction(
         `Приложение к запросу в ${recipient}.`,
         requestId,
       );
+      break;
+    }
+    case "send-request-approval": {
+      if (!c.requests.length)
+        throw new Error("Сначала сформируйте запрос и приложение к нему");
+      c.status = "request_approval";
+      title = "Запрос и приложение направлены на согласование";
+      note = "Сформированные документы направлены директору ДАВГА.";
+      break;
+    }
+    case "approve-request": {
+      checked(form, "approved");
+      if (!c.requests.length) throw new Error("Запрос не сформирован");
+      c.status = "request_approved";
+      title = "Запрос согласован";
+      note = directedToDvgaOrKvga(c)
+        ? "Запрос направлен в кабинет ДВГА/КВГА для подготовки мотивированного ответа."
+        : "Согласованный запрос ожидает поступления ответа.";
+      break;
+    }
+    case "fill-request-response": {
+      if (!directedToDvgaOrKvga(c))
+        throw new Error("Это действие доступно только для запроса в ДВГА/КВГА");
+      for (const point of disputed(c))
+        point.position = text(
+          `authorityResponse_${point.id}`,
+          `Мотивированный ответ по пункту ${point.number}`,
+        );
+      const request = c.requests.at(-1)!;
+      request.responded = date;
+      c.documents
+        .filter(
+          (document) =>
+            document.kind === "request-appendix" &&
+            document.requestId === request.id,
+        )
+        .forEach((document) => {
+          if (document.snapshot)
+            document.snapshot.issues = structuredClone(c.issues);
+        });
+      note = "Мотивированные ответы ДВГА/КВГА заполнены по всем оспариваемым пунктам.";
+      c.status = "materials";
+      doc("Мотивированный ответ ДВГА/КВГА", "authority-response", note);
       break;
     }
     case "position":
