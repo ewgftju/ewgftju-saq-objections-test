@@ -102,7 +102,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
     },
     meeting: {
       action: "vote",
-      label: "Провести заседание",
+      label: "Сформировать протокол заседания",
       role: "commission",
     },
     protocol: {
@@ -640,8 +640,10 @@ export function applyAction(
         c.votes[point.id] = { ...result, votes };
         point.final = point.proposal;
       }
+      const protocolDate = String(form.get("protocolDate") || date);
+      dateObject(protocolDate);
       c.meeting = {
-        date,
+        date: protocolDate,
         number: text("number", "Номер протокола"),
         audio: text("audio", "Реквизиты аудиозаписи"),
       };
