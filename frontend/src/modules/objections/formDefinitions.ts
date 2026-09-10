@@ -129,9 +129,10 @@ export function actionForm(
       break;
     case "position":
       title = "Ответ получен";
+      fields[0] = input("date", "Дата получения ответа", date, "date");
       fields.push(area("evidence", "Краткое описание полученных материалов"));
       note =
-        "Перед подтверждением ответа вложите полученные файлы в разделе материалов дела.";
+        "Вложите все полученные от адресата документы и сохраните подтверждение поступления ответа.";
       break;
     case "analysis":
     case "control-analysis":
