@@ -160,13 +160,13 @@ export default function NewCaseModal({
         </label>
         <div className="form-grid">
           {[
-            { name: "org", label: "Наименование объекта" },
-            { name: "bin", label: "БИН" },
+            { name: "org", label: "Наименование объекта аудита/заявителя" },
+            { name: "bin", label: "БИН/ИИН" },
             { name: "address", label: "Местонахождение" },
-            { name: "applicant", label: "Заявитель / представитель" },
+            { name: "applicant", label: "Представитель" },
             {
               name: "issuer",
-              label: "Орган, выдавший документ",
+              label: "Орган аудита (КВГА/ДВГА)",
               value: "ДВГА по Атырауской области",
             },
             { name: "number", label: "Номер исходного документа" },
@@ -234,7 +234,7 @@ export default function NewCaseModal({
         <Field
           field={{
             name: "request",
-            label: "Требования заявителя",
+            label: "Краткое описание",
             type: "textarea",
             required: true,
           }}
