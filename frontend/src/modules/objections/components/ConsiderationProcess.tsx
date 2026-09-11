@@ -207,7 +207,7 @@ export default function ConsiderationProcess({
           </button>
         </div>
       )}
-      {extras.length > 0 && (
+      {currentStatus !== "received" && extras.length > 0 && (
         <details className="consideration-extras">
           <summary>Другие действия по делу</summary>
           <div>
