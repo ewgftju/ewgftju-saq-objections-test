@@ -122,8 +122,8 @@ export function DocumentContent({
               .map((point) => (
                 <tr key={point.id}>
                   <td>{point.number}</td>
+                  <td />
                   <td>{point.title}</td>
-                  <td>{point.argument}</td>
                   <td aria-label="Мотивированный ответ ДВГА">
                     {appendixPreview?.[point.id] ?? point.position ?? ""}
                   </td>
