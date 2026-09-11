@@ -551,8 +551,14 @@ test("дело открывает процесс, а одно действие �
     }),
   );
   assert.match(appendixHtml, /Нарушение, по которым поступило возражение/);
-  assert.match(appendixHtml, /Требование к технической спецификации/);
-  assert.match(appendixHtml, /Описание соответствует функциональной потребности/);
+  assert.match(
+    appendixHtml,
+    /<td><\/td><td>Требование к технической спецификации<\/td>/,
+  );
+  assert.doesNotMatch(
+    appendixHtml,
+    /Описание соответствует функциональной потребности/,
+  );
   const appendixWithResponseHtml = renderToStaticMarkup(
     createElement(DocumentContent, {
       c: h.c,
