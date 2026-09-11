@@ -21,6 +21,7 @@ export function DocumentContent({
   kind,
   document,
   requestPreview,
+  appendixFindingPreview,
   appendixPreview,
   certificatePreview,
   protocolPreview,
@@ -29,6 +30,7 @@ export function DocumentContent({
   kind: string;
   document?: CaseDocument;
   requestPreview?: Pick<CaseRequest, "recipient" | "deadline" | "customText">;
+  appendixFindingPreview?: Record<string, string>;
   appendixPreview?: Record<string, string>;
   certificatePreview?: CaseCertificate;
   protocolPreview?: {
@@ -122,7 +124,7 @@ export function DocumentContent({
               .map((point) => (
                 <tr key={point.id}>
                   <td>{point.number}</td>
-                  <td>{point.authorityFinding}</td>
+                  <td>{appendixFindingPreview?.[point.id] ?? point.authorityFinding ?? ""}</td>
                   <td>{point.title}</td>
                   <td aria-label="Мотивированный ответ ДВГА">
                     {appendixPreview?.[point.id] ?? point.position ?? ""}
