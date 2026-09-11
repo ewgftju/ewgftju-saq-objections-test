@@ -193,6 +193,8 @@ export default function ActionModal({
     requestRecipient === "other"
       ? values.recipientOther || ""
       : requestRecipient;
+  const customRequestText =
+    requestRecipient === "other" ? values.customRequestText ?? "" : undefined;
   const protocolMembers = c.members.map((member) => ({
     ...member,
     present:
@@ -295,10 +297,20 @@ export default function ActionModal({
                   <div key={field.name}>
                     <Field field={field} />
                     {requestRecipient === "other" && (
-                      <label className="field">
-                        <span>Укажите адресата</span>
-                        <input name="recipientOther" required />
-                      </label>
+                      <>
+                        <label className="field">
+                          <span>Укажите адресата</span>
+                          <input name="recipientOther" required />
+                        </label>
+                        <label className="field">
+                          <span>Текст запроса</span>
+                          <textarea
+                            name="customRequestText"
+                            rows={8}
+                            required
+                          />
+                        </label>
+                      </>
                     )}
                   </div>
                 ) : (
@@ -313,6 +325,7 @@ export default function ActionModal({
                 requestPreview={{
                   recipient: requestRecipientForPreview,
                   deadline: requestDeadline,
+                  customText: customRequestText,
                 }}
               />
             </div>
