@@ -191,6 +191,7 @@ export default function ObjectionsModule() {
             onTab={(tab) => model.navigate({ ...model.route, tab })}
             onAction={(action, role) => {
               if (
+                action === "screen" ||
                 action === "send-request-approval" ||
                 action === "approve-request" ||
                 action === "approve-certificate" ||
@@ -198,6 +199,28 @@ export default function ObjectionsModule() {
                 action === "members"
               ) {
                 const form = new FormData();
+                if (action === "screen") {
+                  form.set("identity", "on");
+                  form.set("document", "on");
+                  form.set("grounds", "on");
+                  form.set("competence", "on");
+                  form.set(
+                    "assignee",
+                    c.assignee === "Не назначен"
+                      ? "Исполнитель ДАВГА"
+                      : c.assignee,
+                  );
+                  form.set("authority", c.authority);
+                  form.set(
+                    "basis",
+                    "Реквизиты обращения проверены, обращение принято к рассмотрению.",
+                  );
+                  if (c.type === "control")
+                    form.set(
+                      "actEffect",
+                      "Обращение принято к рассмотрению в общем порядке.",
+                    );
+                }
                 if (action === "approve-request") {
                   form.set("approved", "on");
                 }
@@ -213,7 +236,9 @@ export default function ObjectionsModule() {
                 );
                 model.commit(
                   next,
-                  action === "approve-request"
+                  action === "screen"
+                    ? "Обращение принято к рассмотрению"
+                    : action === "approve-request"
                     ? "Запрос согласован"
                     : action === "approve-certificate"
                       ? "Справка согласована"
