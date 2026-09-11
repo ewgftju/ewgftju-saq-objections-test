@@ -94,9 +94,15 @@ function prepare(h: Harness, partial = false) {
     Object.fromEntries(
       h.c.issues
         .filter((point) => point.disputed)
-        .map((point) => [
-          `authorityResponse_${point.id}`,
-          "Мотивированный ответ ДВГА (демо)",
+        .flatMap((point) => [
+          [
+            `authorityFinding_${point.id}`,
+            "Нарушение, заполненное ДВГА (демо)",
+          ],
+          [
+            `authorityResponse_${point.id}`,
+            "Мотивированный ответ ДВГА (демо)",
+          ],
         ]),
     ),
   );
@@ -197,6 +203,10 @@ test("запрос получает срок два рабочих дня до 1
 test("уведомление: сквозной маршрут сохраняет неоспоренный пункт и снимки документов", () => {
   const h = harness();
   prepare(h);
+  assert.equal(
+    h.c.issues.find((point) => point.id === "n1")?.authorityFinding,
+    "Нарушение, заполненное ДВГА (демо)",
+  );
   h.run("hearing", "work", {
     mode: "favorable",
     reason: "Все заявленные доводы удовлетворяются",
@@ -609,9 +619,12 @@ test("справка выводит позиции членов АК в печа
     Object.fromEntries(
       h.c.issues
         .filter((point) => point.disputed)
-        .map((point) => [
-          `authorityResponse_${point.id}`,
-          "Мотивированный ответ ДВГА",
+        .flatMap((point) => [
+          [
+            `authorityFinding_${point.id}`,
+            "Нарушение, заполненное ДВГА",
+          ],
+          [`authorityResponse_${point.id}`, "Мотивированный ответ ДВГА"],
         ]),
     ),
   );
