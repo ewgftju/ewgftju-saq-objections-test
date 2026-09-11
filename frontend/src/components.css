@@ -544,6 +544,14 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+.request-template-body.standard {
+  width: 100%;
+  max-width: none;
+  white-space: normal;
+}
+.request-template-body.custom {
+  white-space: pre-wrap;
+}
 .request-template-signature {
   display: grid;
   grid-template-columns: 1fr auto;
