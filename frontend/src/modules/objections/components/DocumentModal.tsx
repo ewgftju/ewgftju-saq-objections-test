@@ -28,7 +28,7 @@ export function DocumentContent({
   c: ObjectionCase;
   kind: string;
   document?: CaseDocument;
-  requestPreview?: Pick<CaseRequest, "recipient" | "deadline">;
+  requestPreview?: Pick<CaseRequest, "recipient" | "deadline" | "customText">;
   appendixPreview?: Record<string, string>;
   certificatePreview?: CaseCertificate;
   protocolPreview?: {
@@ -75,15 +75,18 @@ export function DocumentContent({
         <p className="request-template-recipient">
           <b>{request.recipient || "Кому направить запрос"}</b>
         </p>
-        <p className="request-template-body">
-          Қазақстан Республикасы Қаржы министрлігінің апелляциялық
-          комиссиясының қарауына «{c.org}» {formatDate(c.appealDate || c.filed)}
-          жылғы №{c.appealNumber || c.document.number} камералдық бақылау
-          нәтижелері бойынша анықталған бұзушылықтарды жою туралы
-          хабарламаларда көрсетілген бұзушылықтарға қарсылықтарының келіп
-          түсуіне байланысты {formatDateTime(request.deadline)} мерзімде
-          қарсылықтың дәлелдері бойынша дәлелді жауапты және растайтын
-          құжаттарды қоса бере отырып ұсынуыңызды талап етеміз.
+        <p className="request-template-body" style={{ whiteSpace: "pre-wrap" }}>
+          {request.customText !== undefined
+            ? request.customText
+            :
+            `Қазақстан Республикасы Қаржы министрлігінің апелляциялық
+комиссиясының қарауына «${c.org}» ${formatDate(c.appealDate || c.filed)}
+жылғы №${c.appealNumber || c.document.number} камералдық бақылау
+нәтижелері бойынша анықталған бұзушылықтарды жою туралы
+хабарламаларда көрсетілген бұзушылықтарға қарсылықтарының келіп
+түсуіне байланысты ${formatDateTime(request.deadline)} мерзімде
+қарсылықтың дәлелдері бойынша дәлелді жауапты және растайтын
+құжаттарды қоса бере отырып ұсынуыңызды талап етеміз.`}
         </p>
         <p>Қосымша __ бетте.</p>
         <div className="request-template-signature">
