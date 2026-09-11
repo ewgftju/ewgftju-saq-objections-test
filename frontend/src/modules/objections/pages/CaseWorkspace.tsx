@@ -56,7 +56,7 @@ function PointCard({
         </span>
       </div>
       <p>
-        <b>Вывод исходного документа:</b> {point.finding}
+        <b>Документы подтверждающие нарушение:</b> {point.finding}
       </p>
       <p>
         <b>Довод заявителя:</b> {point.argument}
