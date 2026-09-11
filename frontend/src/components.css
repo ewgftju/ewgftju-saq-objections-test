@@ -541,6 +541,8 @@
 .request-template-body {
   text-align: justify;
   text-indent: 24px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .request-template-signature {
   display: grid;
