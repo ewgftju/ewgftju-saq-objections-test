@@ -75,7 +75,11 @@ export function DocumentContent({
         <p className="request-template-recipient">
           <b>{request.recipient || "Кому направить запрос"}</b>
         </p>
-        <p className="request-template-body" style={{ whiteSpace: "pre-wrap" }}>
+        <p
+          className={`request-template-body ${
+            request.customText === undefined ? "standard" : "custom"
+          }`}
+        >
           {request.customText !== undefined
             ? request.customText
             :
