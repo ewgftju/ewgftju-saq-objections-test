@@ -574,9 +574,11 @@ test("дело открывает процесс, а одно действие �
       c: h.c,
       kind: "request-appendix",
       document: appendixDocument,
+      appendixFindingPreview: { [h.c.issues[0].id]: "Нарушение ДВГА" },
       appendixPreview: { [h.c.issues[0].id]: "Мотивированный ответ ДВГА" },
     }),
   );
+  assert.match(appendixWithResponseHtml, /Нарушение ДВГА/);
   assert.match(appendixWithResponseHtml, /Мотивированный ответ ДВГА/);
   assert.match(renderToStaticMarkup(process()), /Отправить на согласование/);
   primaryAction(process())!();
