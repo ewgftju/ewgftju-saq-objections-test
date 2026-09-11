@@ -55,9 +55,11 @@ function PointCard({
           {point.disputed ? "Оспаривается" : "Не оспаривается"}
         </span>
       </div>
-      <p>
-        <b>Документы подтверждающие нарушение:</b> {point.finding}
-      </p>
+      {point.finding && (
+        <p>
+          <b>Документы подтверждающие нарушение:</b> {point.finding}
+        </p>
+      )}
       <p>
         <b>Довод заявителя:</b> {point.argument}
       </p>
