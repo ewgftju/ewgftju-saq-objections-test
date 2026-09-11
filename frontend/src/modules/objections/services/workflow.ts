@@ -350,6 +350,10 @@ export function applyAction(
         selectedRecipient === "other"
           ? text("recipientOther", "Укажите адресата")
           : selectedRecipient;
+      const customText =
+        selectedRecipient === "other"
+          ? text("customRequestText", "Текст запроса")
+          : undefined;
       const deadline = `${addWorkdays(date, 2)}T18:00`;
       const requestId = `request-${c.requests.length + 1}`;
       note = `Запрос сформирован для ${recipient}. Срок рассмотрения: ${deadline}.`;
@@ -359,6 +363,7 @@ export function applyAction(
         date,
         text: note,
         deadline,
+        customText,
       });
       c.status = "requested";
       doc(`Запрос в ${recipient}`, "request", note, requestId);
