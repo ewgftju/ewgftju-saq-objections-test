@@ -41,6 +41,7 @@ export interface ViolationPoint {
   amount: number;
   disputed: boolean;
   evidence?: string;
+  authorityFinding?: string;
   position?: string;
   analysis?: string;
   legal?: string;
