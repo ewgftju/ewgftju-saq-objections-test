@@ -290,13 +290,6 @@ export default function CaseWorkspace({
                 <h3 className="form-section">
                   Материалы и результаты рассмотрения
                 </h3>
-                {c.screening && (
-                  <details>
-                    <summary>Проверка при поступлении</summary>
-                    <p>{c.screening}</p>
-                    {c.actEffect && <p>{c.actEffect}</p>}
-                  </details>
-                )}
                 {c.requests.map((request, index) => {
                   const latest = index === c.requests.length - 1;
                   const documents = c.documents.filter(
