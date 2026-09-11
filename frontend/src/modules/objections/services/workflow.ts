@@ -345,10 +345,12 @@ export function applyAction(
       break;
     }
     case "request": {
-      const recipient = text("recipient", "Кому направить запрос");
-      const deadline = text("deadline", "Срок рассмотрения");
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(deadline))
-        throw new Error("Укажите дату и время срока рассмотрения");
+      const selectedRecipient = text("recipient", "Кому направить запрос");
+      const recipient =
+        selectedRecipient === "other"
+          ? text("recipientOther", "Укажите адресата")
+          : selectedRecipient;
+      const deadline = `${addWorkdays(date, 2)}T18:00`;
       const requestId = `request-${c.requests.length + 1}`;
       note = `Запрос сформирован для ${recipient}. Срок рассмотрения: ${deadline}.`;
       c.requests.push({
