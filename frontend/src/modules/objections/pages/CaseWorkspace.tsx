@@ -39,12 +39,24 @@ function Fact({
 
 function PointCard({
   point,
+  documents,
   review = false,
 }: {
   point: ViolationPoint;
+  documents: CaseDocument[];
   review?: boolean;
 }) {
   const result = point.final || point.proposal;
+  const evidenceDocuments = point.evidence
+    ? documents.filter(
+        (document) =>
+          !!document.dataUrl &&
+          point.evidence!
+            .split(",")
+            .map((name) => name.trim())
+            .includes(document.filename || document.name),
+      )
+    : [];
   return (
     <article className="point-card">
       <div className="point-head">
@@ -65,7 +77,22 @@ function PointCard({
       </p>
       {point.evidence && (
         <p>
-          <b>Доказательства:</b> {point.evidence}
+          <b>Доказательства:</b>{" "}
+          {evidenceDocuments.length ? (
+            evidenceDocuments.map((document, index) => (
+              <span key={`${document.filename}-${index}`}>
+                {index > 0 && ", "}
+                <a
+                  href={document.dataUrl}
+                  download={document.filename || document.name}
+                >
+                  {document.filename || document.name}
+                </a>
+              </span>
+            ))
+          ) : (
+            point.evidence
+          )}
         </p>
       )}
       {point.amount > 0 && (
@@ -229,7 +256,11 @@ export default function CaseWorkspace({
                 {c.affectedParties && <Notice>{c.affectedParties}</Notice>}
                 <h3 className="form-section">Доводы и пункты документа</h3>
                 {c.issues.map((point) => (
-                  <PointCard key={point.id} point={point} />
+                  <PointCard
+                    key={point.id}
+                    point={point}
+                    documents={c.documents}
+                  />
                 ))}
                 {c.type === "notice" && (
                   <Notice>
@@ -333,7 +364,12 @@ export default function CaseWorkspace({
                 {c.issues
                   .filter((point) => point.disputed)
                   .map((point) => (
-                    <PointCard key={point.id} point={point} review />
+                    <PointCard
+                      key={point.id}
+                      point={point}
+                      documents={c.documents}
+                      review
+                    />
                   ))}
                 {c.memberPosition && (
                   <Notice>
