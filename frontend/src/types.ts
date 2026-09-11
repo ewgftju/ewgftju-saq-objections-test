@@ -132,6 +132,7 @@ export interface CaseRequest {
   date: string;
   text: string;
   deadline: string;
+  customText?: string;
   responded?: string;
 }
 
