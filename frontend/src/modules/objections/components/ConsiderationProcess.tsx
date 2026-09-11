@@ -133,9 +133,15 @@ export default function ConsiderationProcess({
   const next = nextAction(c);
   const stages = c.type === "control" ? CONTROL_STAGES : OBJECTION_STAGES;
   const currentStatus = c.status === "paused" ? c.resumeStatus : c.status;
-  const extras = additionalActions(c).filter(
+  const inRequestFormationStage = stages[1].statuses.includes(
+    currentStatus ?? c.status,
+  );
+  const availableExtras = additionalActions(c).filter(
     (option) => option.action !== "upload",
   );
+  const extras = inRequestFormationStage
+    ? availableExtras.filter((option) => option.action === "supplement")
+    : availableExtras;
   const lastEvent = c.history.at(-1);
 
   return (
