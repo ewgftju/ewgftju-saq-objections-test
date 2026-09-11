@@ -378,6 +378,12 @@ export default function ActionModal({
               <DocumentContent
                 c={c}
                 kind="request-appendix"
+                appendixFindingPreview={Object.fromEntries(
+                  disputed(c).map((point) => [
+                    point.id,
+                    values[`authorityFinding_${point.id}`] || point.authorityFinding || "",
+                  ]),
+                )}
                 appendixPreview={Object.fromEntries(
                   disputed(c).map((point) => [
                     point.id,
