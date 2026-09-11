@@ -413,11 +413,16 @@ export function applyAction(
     case "fill-request-response": {
       if (!directedToDvgaOrKvga(c))
         throw new Error("Это действие доступно только для запроса в ДВГА/КВГА");
-      for (const point of disputed(c))
+      for (const point of disputed(c)) {
+        point.authorityFinding = text(
+          `authorityFinding_${point.id}`,
+          `Нарушение по пункту ${point.number}`,
+        );
         point.position = text(
           `authorityResponse_${point.id}`,
           `Мотивированный ответ по пункту ${point.number}`,
         );
+      }
       const request = c.requests.at(-1)!;
       request.responded = date;
       c.documents
