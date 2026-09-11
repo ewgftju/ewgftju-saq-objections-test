@@ -15,6 +15,7 @@ import {
   addMonths,
   filingDeadline,
   reviewDeadline,
+  reviewDuration,
 } from "../services/deadlines";
 import { evaluateVotes, remainingIssues } from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
@@ -147,10 +148,25 @@ test("три исходных дела: разные сроки и перено�
     "2026-11-30",
   ]);
   assert.deepEqual(state.cases.map(reviewDeadline), [
-    "2026-09-29",
-    "2026-10-20",
-    "2026-10-06",
+    "2026-09-24",
+    "2026-10-14",
+    "2026-10-12",
   ]);
+  assert.equal(
+    reviewDuration({ ...state.cases[1], appealType: "Заявление" }),
+    15,
+  );
+  assert.equal(
+    reviewDuration({
+      ...state.cases[2],
+      appealType: "Жалоба на действие/бездействие",
+    }),
+    20,
+  );
+  assert.equal(
+    reviewDuration({ ...state.cases[1], appealType: "Возражение на аудиторский отчет" }),
+    30,
+  );
   assert.equal(addMonths("2026-08-31", 3), "2026-11-30");
   assert.equal(
     state.cases.every((c) => c.status === "received"),
