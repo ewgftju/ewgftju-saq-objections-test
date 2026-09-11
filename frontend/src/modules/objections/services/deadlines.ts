@@ -55,11 +55,22 @@ export function filingDeadline(c: ObjectionCase) {
       )
     : addWorkdays(c.document.received, c.type === "audit" ? 10 : 5);
 }
+
+export function reviewDuration(c: ObjectionCase) {
+  if (c.appealType === "Возражение на аудиторский отчет") return 30;
+  if (c.appealType === "Жалоба на действие/бездействие") return 20;
+  if (c.appealType === "Заявление") return 15;
+  if (
+    (c.appealType === "Возражение на уведомления" ||
+      c.type === "notice") &&
+    c.channel === "Веб-портал государственных закупок"
+  )
+    return 15;
+  return 30;
+}
+
 export function reviewDeadline(c: ObjectionCase) {
-  let d = addWorkdays(
-    c.registered,
-    c.type === "notice" ? 15 : c.type === "audit" ? 30 : 20,
-  );
+  let d = addWorkdays(c.document.received, reviewDuration(c));
   if (c.extensionDays) d = addWorkdays(d, c.extensionDays);
   if (c.pauseDays) d = addWorkdays(d, c.pauseDays);
   return d;
