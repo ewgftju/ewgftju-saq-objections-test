@@ -58,6 +58,7 @@ export function Field({ field }: { field: FormField }) {
           min={field.min}
           max={field.max}
           required={field.required}
+          readOnly={field.readOnly}
           step={field.type === "number" ? "any" : undefined}
         />
       )}
@@ -184,6 +185,14 @@ export default function ActionModal({
     values.deadline ||
     definition.fields.find((field) => field.name === "deadline")?.value ||
     `${date}T18:00`;
+  const requestRecipient =
+    values.recipient ??
+    definition.fields.find((field) => field.name === "recipient")?.value ??
+    "";
+  const requestRecipientForPreview =
+    requestRecipient === "other"
+      ? values.recipientOther || ""
+      : requestRecipient;
   const protocolMembers = c.members.map((member) => ({
     ...member,
     present:
@@ -281,16 +290,28 @@ export default function ActionModal({
               </button>
             </div>
             <div hidden={requestTab !== "form"} className="form-grid">
-              {definition.fields.map((field) => (
-                <Field key={field.name} field={field} />
-              ))}
+              {definition.fields.map((field) =>
+                field.name === "recipient" ? (
+                  <div key={field.name}>
+                    <Field field={field} />
+                    {requestRecipient === "other" && (
+                      <label className="field">
+                        <span>Укажите адресата</span>
+                        <input name="recipientOther" required />
+                      </label>
+                    )}
+                  </div>
+                ) : (
+                  <Field key={field.name} field={field} />
+                ),
+              )}
             </div>
             <div hidden={requestTab !== "print"} className="request-print-preview">
               <DocumentContent
                 c={c}
                 kind="request"
                 requestPreview={{
-                  recipient: values.recipient || "",
+                  recipient: requestRecipientForPreview,
                   deadline: requestDeadline,
                 }}
               />
