@@ -177,10 +177,7 @@ export default function NewCaseModal({
               applicant: get("applicant", "Заявитель"),
               registered: state.date,
               filed,
-              channel:
-                type === "notice"
-                  ? get("channel", "Исходная система")
-                  : "Кабинет SAQ",
+              channel: get("channel", "Портал / цифровая система"),
               issuer: get("issuer", "Орган"),
               authority:
                 type === "control"
@@ -213,10 +210,7 @@ export default function NewCaseModal({
                     `pointTitle_${pointId}`,
                     `Описание пункта ${pointNumber}`,
                   ),
-                  finding: get(
-                    `finding_${pointId}`,
-                    `Документы подтверждающие нарушение по пункту ${pointNumber}`,
-                  ),
+                  finding: "",
                   argument: get(
                     `argument_${pointId}`,
                     `Довод заявителя по пункту ${pointNumber}`,
@@ -340,33 +334,17 @@ export default function NewCaseModal({
             />
           ))}
         </div>
-        {type === "notice" && (
-          <Field
-            field={{
-              name: "channel",
-              label:
-                "Портал / цифровая система, по которой поступило уведомление",
-              type: "select",
-              value: "Веб-портал государственных закупок",
-              options: CHANNEL_OPTIONS.map((option) => [option, option]),
-              required: true,
-            }}
-          />
-        )}
-        {type === "control" && (
-          <Field
-            field={{
-              name: "appealExplained",
-              label: "В акте разъяснён порядок обжалования",
-              type: "select",
-              value: "yes",
-              options: [
-                ["yes", "Да"],
-                ["no", "Нет — проверить специальный срок по ст. 92 АППК"],
-              ],
-            }}
-          />
-        )}
+        <Field
+          field={{
+            name: "channel",
+            label:
+              "Портал / цифровая система, по которой поступило уведомление",
+            type: "select",
+            value: "Веб-портал государственных закупок",
+            options: CHANNEL_OPTIONS.map((option) => [option, option]),
+            required: true,
+          }}
+        />
         <Field
           field={{
             name: "request",
@@ -411,23 +389,14 @@ export default function NewCaseModal({
                   required: true,
                 }}
               />
-              {[
-                {
-                  name: "finding",
-                  label: "Документы подтверждающие нарушение",
-                },
-                { name: "argument", label: "Довод заявителя" },
-              ].map((field) => (
-                <Field
-                  key={field.name}
-                  field={{
-                    ...field,
-                    name: `${field.name}_${pointId}`,
-                    type: "textarea",
-                    required: true,
-                  }}
-                />
-              ))}
+              <Field
+                field={{
+                  name: `argument_${pointId}`,
+                  label: "Довод заявителя",
+                  type: "textarea",
+                  required: true,
+                }}
+              />
               <label className="field">
                 <span>Доказательства</span>
                 <input
