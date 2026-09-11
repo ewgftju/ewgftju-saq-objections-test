@@ -186,13 +186,18 @@ export function actionForm(
         fields.push(
           heading(point.id, `Пункт ${point.number} — ${point.title}`),
           area(
+            `authorityFinding_${point.id}`,
+            "Нарушение, по которым поступило возражение",
+            point.authorityFinding,
+          ),
+          area(
             `authorityResponse_${point.id}`,
             "Мотивированный ответ ДВГА/КВГА по доводу возражения",
             point.position,
           ),
         );
       note =
-        "Заполните мотивированный ответ по каждому пункту. Тексты появятся в третьем столбце приложения к запросу.";
+        "Заполните нарушение и мотивированный ответ по каждому пункту. Тексты появятся в первом и третьем столбцах приложения к запросу.";
       break;
     case "position":
       title = "Ответ получен";
