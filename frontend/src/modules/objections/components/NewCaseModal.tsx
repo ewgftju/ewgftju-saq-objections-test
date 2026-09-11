@@ -9,12 +9,53 @@ import { Field } from "./ActionModal";
 const FILE_EXTENSIONS = /\.(pdf|png|jpe?g|docx?|xlsx?|txt)$/i;
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
+const AUDIT_ORGAN_OPTIONS = [
+  "КВГА",
+  "ДВГА по Акмолинской области",
+  "ДВГА по Актюбинской области",
+  "ДВГА по Алматинской области",
+  "ДВГА по области Жетісу",
+  "ДВГА по Атырауской области",
+  "ДВГА по Восточно-Казахстанской области",
+  "ДВГА по Жамбылской области",
+  "ДВГА по Западно-Казахстанской области",
+  "ДВГА по Карагандинской области",
+  "ДВГА по Костанайской области",
+  "ДВГА по Кызылординской области",
+  "ДВГА по Мангыстауской области",
+  "ДВГА по Павлодарской области",
+  "ДВГА по Северо-Казахстанской области",
+  "ДВГА по Туркестанской области",
+  "ДВГА по г.Шымкент",
+  "ДВГА по г. Алматы",
+  "ДВГА по г. Астана",
+  "ДВГА по области Ұлытау",
+  "ДВГА по области Абай",
+] as const;
+
+const CHANNEL_OPTIONS = [
+  "E-Otinish",
+  "Веб-портал государственных закупок",
+  "ОДО",
+  "SAQ",
+  "другое",
+] as const;
+
 function fileDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
     reader.readAsDataURL(file);
+  });
+}
+
+function validateFiles(files: File[]) {
+  files.forEach((file) => {
+    if (file.size > MAX_FILE_SIZE)
+      throw new Error(`Файл «${file.name}» превышает 2 МБ`);
+    if (!FILE_EXTENSIONS.test(file.name))
+      throw new Error("Поддерживаются PDF, PNG, JPG, DOC(X), XLS(X), TXT");
   });
 }
 
@@ -79,14 +120,24 @@ export default function NewCaseModal({
                 (value): value is File =>
                   value instanceof File && value.name.length > 0,
               );
-            requirementFiles.forEach((file) => {
-              if (file.size > MAX_FILE_SIZE)
-                throw new Error(`Файл «${file.name}» превышает 2 МБ`);
-              if (!FILE_EXTENSIONS.test(file.name))
-                throw new Error(
-                  "Поддерживаются PDF, PNG, JPG, DOC(X), XLS(X), TXT",
-                );
-            });
+            const pointEvidenceFiles = Array.from(
+              { length: pointCount },
+              (_, index) => {
+                const pointId = `point${index + 1}`;
+                const files = data
+                  .getAll(`evidenceFiles_${pointId}`)
+                  .filter(
+                    (value): value is File =>
+                      value instanceof File && value.name.length > 0,
+                  );
+                if (!files.length)
+                  throw new Error(
+                    `Вложите доказательства по пункту ${index + 1}`,
+                  );
+                return files;
+              },
+            );
+            validateFiles([...requirementFiles, ...pointEvidenceFiles.flat()]);
             const get = (name: string, label: string) =>
               required(data, name, label);
             const bin = get("bin", "БИН");
@@ -98,13 +149,9 @@ export default function NewCaseModal({
             );
             const received = get("received", "Дата получения документа");
             const filed = state.date;
-            const documentDate = get("documentDate", "Дата документа");
-            [appealDate, received, filed, documentDate].forEach(dateObject);
-            if (
-              documentDate > received ||
-              received > filed ||
-              filed > state.date
-            )
+            const documentDate = appealDate;
+            [appealDate, received, filed].forEach(dateObject);
+            if (received > filed || filed > state.date)
               throw new Error(
                 "Проверьте порядок дат: документ → получение → подача → регистрация",
               );
@@ -140,7 +187,7 @@ export default function NewCaseModal({
                   ? "Вышестоящий орган — определить компетенцию"
                   : "Апелляционная комиссия при Министерстве финансов РК",
               document: {
-                number: get("number", "Номер документа"),
+                number: "",
                 date: documentDate,
                 received,
                 name:
@@ -164,32 +211,44 @@ export default function NewCaseModal({
                   ),
                   title: get(
                     `pointTitle_${pointId}`,
-                    `Краткий заголовок пункта ${pointNumber}`,
+                    `Описание пункта ${pointNumber}`,
                   ),
                   finding: get(
                     `finding_${pointId}`,
-                    `Вывод исходного документа по пункту ${pointNumber}`,
+                    `Документы подтверждающие нарушение по пункту ${pointNumber}`,
                   ),
                   argument: get(
                     `argument_${pointId}`,
                     `Довод заявителя по пункту ${pointNumber}`,
                   ),
-                  evidence: get(
-                    `evidence_${pointId}`,
-                    `Документы по пункту ${pointNumber}`,
-                  ),
+                  evidence: pointEvidenceFiles[index]
+                    .map((file) => file.name)
+                    .join(", "),
                   disputed: true,
                   amount,
                 };
               }),
             });
             c.documents = await Promise.all(
-              requirementFiles.map(async (file) => ({
+              [
+                ...requirementFiles.map((file) => ({
+                  file,
+                  text: "Требования заявителя",
+                  author: "Заявитель",
+                })),
+                ...pointEvidenceFiles.flatMap((files, index) =>
+                  files.map((file) => ({
+                    file,
+                    text: `Доказательства по оспариваемому пункту ${index + 1}`,
+                    author: "Заявитель",
+                  })),
+                ),
+              ].map(async ({ file, text, author }) => ({
                 name: file.name,
                 filename: file.name,
                 kind: "attachment",
-                text: "Требования заявителя",
-                author: "Заявитель",
+                text,
+                author,
                 date: state.date,
                 dataUrl: await fileDataUrl(file),
               })),
@@ -232,32 +291,42 @@ export default function NewCaseModal({
         </label>
         <div className="form-grid">
           {[
-            { name: "org", label: "Наименование объекта аудита/заявителя" },
-            { name: "bin", label: "БИН/ИИН" },
+            {
+              name: "org",
+              label: "Наименование объекта аудита/заявителя",
+              type: "text" as const,
+            },
+            { name: "bin", label: "БИН/ИИН", type: "text" as const },
             {
               name: "appealNumber",
               label: "Номер возражения, жалобы, заявления",
+              type: "text" as const,
             },
-            { name: "address", label: "Местонахождение" },
-            { name: "applicant", label: "Представитель" },
-            {
-              name: "issuer",
-              label: "Орган аудита (КВГА/ДВГА)",
-              value: "ДВГА по Атырауской области",
-            },
-            { name: "number", label: "Номер исходного документа" },
-          ].map((field) => (
-            <Field
-              field={{ ...field, type: "text", required: true }}
-              key={field.name}
-            />
-          ))}
-          {[
             {
               name: "appealDate",
               label: "Дата возражения, жалобы, заявления",
+              type: "date" as const,
+              value: state.date,
             },
-            { name: "documentDate", label: "Дата документа" },
+            { name: "address", label: "Местонахождение", type: "text" as const },
+            { name: "applicant", label: "Представитель", type: "text" as const },
+          ].map((field) => (
+            <Field
+              field={{ ...field, required: true }}
+              key={field.name}
+            />
+          ))}
+          <Field
+            field={{
+              name: "issuer",
+              label: "Орган аудита (КВГА/ДВГА)",
+              type: "select",
+              value: "ДВГА по Атырауской области",
+              options: AUDIT_ORGAN_OPTIONS.map((option) => [option, option]),
+              required: true,
+            }}
+          />
+          {[
             { name: "received", label: "Дата получения документа" },
           ].map((field) => (
             <Field
@@ -277,8 +346,9 @@ export default function NewCaseModal({
               name: "channel",
               label:
                 "Портал / цифровая система, по которой поступило уведомление",
-              type: "text",
+              type: "select",
               value: "Веб-портал государственных закупок",
+              options: CHANNEL_OPTIONS.map((option) => [option, option]),
               required: true,
             }}
           />
@@ -336,18 +406,17 @@ export default function NewCaseModal({
               <Field
                 field={{
                   name: `pointTitle_${pointId}`,
-                  label: "Краткий заголовок",
+                  label: "Описание",
                   type: "text",
                   required: true,
                 }}
               />
               {[
-                { name: "finding", label: "Вывод исходного документа" },
-                { name: "argument", label: "Довод заявителя" },
                 {
-                  name: "evidence",
-                  label: "Документы, подтверждающие довод",
+                  name: "finding",
+                  label: "Документы подтверждающие нарушение",
                 },
+                { name: "argument", label: "Довод заявителя" },
               ].map((field) => (
                 <Field
                   key={field.name}
@@ -359,6 +428,19 @@ export default function NewCaseModal({
                   }}
                 />
               ))}
+              <label className="field">
+                <span>Доказательства</span>
+                <input
+                  type="file"
+                  name={`evidenceFiles_${pointId}`}
+                  accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.txt"
+                  multiple
+                  required
+                />
+                <small className="muted">
+                  Можно вложить несколько файлов до 2 МБ каждый.
+                </small>
+              </label>
             </section>
           );
         })}
