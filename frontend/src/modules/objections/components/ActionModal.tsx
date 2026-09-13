@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import type { Action, ObjectionCase } from "../../../types";
 import { Button, Modal, Notice } from "../../../components/ui";
 import { actionForm } from "../formDefinitions";
@@ -6,6 +7,7 @@ import type { FormField, FormValues } from "../formDefinitions";
 import { disputed } from "../services/decisions";
 import { DocumentContent } from "./DocumentModal";
 import { DEMO_USER } from "../../../config";
+import { downloadFile } from "../../../utils/download";
 
 const COMMISSION_MEMBER_OPTIONS = [
   "ФИО 1",
@@ -15,6 +17,28 @@ const COMMISSION_MEMBER_OPTIONS = [
   "ФИО 5",
   "ФИО 6",
 ] as const;
+
+function appendixDocumentHtml(c: ObjectionCase, document: NonNullable<ObjectionCase["documents"][number]>) {
+  const safeTitle = document.name.replace(/[&<>"']/g, (character) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!,
+  );
+  const content = renderToStaticMarkup(
+    <DocumentContent c={c} kind="request-appendix" document={document} />,
+  );
+  return `<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>${safeTitle}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px; font-family: "Times New Roman", serif; color: #111; background: #f0f5f7; }
+  .print-document { max-width: 900px; min-height: 1120px; margin: 0 auto; padding: 70px 55px; background: #fff; }
+  .appendix-template-number { margin: 0 0 24px; text-align: right; font-size: 16px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { border: 1px solid #111; padding: 8px; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
+  th { text-align: center; font-weight: 700; }
+  th:first-child, td:first-child { width: 7%; text-align: center; }
+  @media print { body { padding: 0; background: #fff; } .print-document { min-height: 0; padding: 20mm 15mm; } }
+</style></head><body>${content}</body></html>`;
+}
 
 export function Field({ field }: { field: FormField }) {
   if (field.type === "heading")
@@ -243,6 +267,24 @@ export default function ActionModal({
           document.requestId === authorityRequestForConfirmation.id,
       )
     : [];
+  const openAppendix = () => {
+    if (!authorityAppendix) return;
+    const popup = window.open("", "_blank");
+    if (!popup) {
+      setError("Не удалось открыть приложение. Разрешите всплывающие окна в браузере.");
+      return;
+    }
+    popup.document.write(appendixDocumentHtml(c, authorityAppendix));
+    popup.document.close();
+  };
+  const downloadAppendix = () => {
+    if (!authorityAppendix) return;
+    downloadFile(
+      `${c.id}-${authorityAppendix.name}.html`,
+      appendixDocumentHtml(c, authorityAppendix),
+      "text/html;charset=utf-8",
+    );
+  };
   return (
     <Modal
       title={definition.title}
@@ -604,12 +646,16 @@ export default function ActionModal({
                   <div className="response-receipt-materials">
                     <b>Заполненное приложение</b>
                     {authorityAppendix ? (
-                      <div className="response-receipt-appendix">
-                        <DocumentContent
-                          c={c}
-                          kind="request-appendix"
-                          document={authorityAppendix}
-                        />
+                      <div className="response-appendix-actions">
+                        <span>{authorityAppendix.name}</span>
+                        <div>
+                          <Button type="button" onClick={openAppendix}>
+                            Открыть
+                          </Button>
+                          <Button type="button" onClick={downloadAppendix}>
+                            Скачать
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <span className="muted">Приложение не найдено</span>
