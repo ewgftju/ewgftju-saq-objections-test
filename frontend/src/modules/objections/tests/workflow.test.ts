@@ -730,6 +730,15 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   );
   assert.match(certificateMaterialsHtml, /<h4>Справка<\/h4>/);
   assert.match(certificateMaterialsHtml, /Скачать Word/);
+  const certificateApprovalHtml = renderToStaticMarkup(
+    createElement(ConsiderationProcess, {
+      c: h.c,
+      role: "work",
+      onAction() {},
+      onHistory() {},
+    }),
+  );
+  assert.match(certificateApprovalHtml, /Заместитель директора ДАВГА/);
   h.run("approve-certificate", "director");
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
