@@ -105,6 +105,11 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Согласовать справку",
       role: "director",
     },
+    certificate_signed: {
+      action: "sign-certificate",
+      label: "Подписать справку",
+      role: "work",
+    },
     certificate_approved: {
       action: "send-certificate-to-commission",
       label: "Направить справку и документы членам АК",
@@ -445,9 +450,17 @@ export function applyAction(
     case "approve-certificate": {
       if (!c.certificate)
         throw new Error("Сначала сформируйте справку по доводам");
-      c.status = "certificate_approved";
+      c.status = "certificate_signed";
       title = "Справка согласована";
-      note = "Справка готова к направлению вместе со всеми материалами членам апелляционной комиссии.";
+      note = "Справка согласована и ожидает подписи исполнителя ДАВГА.";
+      break;
+    }
+    case "sign-certificate": {
+      if (!c.certificate)
+        throw new Error("Справка по доводам не сформирована");
+      c.status = "certificate_approved";
+      title = "Справка подписана";
+      note = "Справка подписана исполнителем ДАВГА и готова к направлению членам апелляционной комиссии.";
       break;
     }
     case "send-certificate-to-commission": {
