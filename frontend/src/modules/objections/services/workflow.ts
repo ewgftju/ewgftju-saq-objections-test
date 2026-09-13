@@ -742,19 +742,48 @@ export function applyAction(
             typeof value === "string" &&
             value.trim().length > 0,
         )
-        .map(([, value]) => String(value).trim());
+        .map(([name, value]) => ({
+          id: `protocol-member-${name.replace("protocolMember_", "")}`,
+          name: String(value).trim(),
+        }));
       if (!selectedMembers.length)
         throw new Error("Добавьте хотя бы одного участника заседания");
-      c.members = selectedMembers.map((name, index) => ({
-        id: `protocol-member-${index + 1}`,
-        name,
+      c.members = selectedMembers.map((member) => ({
+        id: member.id,
+        name: member.name,
         present: true,
         recused: false,
         reason: "",
       }));
-      c.votes = null;
+      c.votes = {};
       for (const point of disputed(c)) {
-        if (!point.proposal) point.proposal = "accept";
+        const memberVotes = Object.fromEntries(
+          c.members.map((member) => {
+            const vote = String(
+              form.get(`protocolVote_${point.id}_${member.id}`) || "",
+            );
+            if (vote !== "yes" && vote !== "no")
+              throw new Error(
+                "Выберите «За» или «Против» для каждого члена АК по всем пунктам",
+              );
+            return [member.id, vote];
+          }),
+        );
+        const yes = Object.values(memberVotes).filter((vote) => vote === "yes").length;
+        const no = c.members.length - yes;
+        const approved =
+          yes > c.members.length / 2 ||
+          (yes === no && memberVotes[c.members[0].id] === "yes");
+        c.votes[point.id] = {
+          yes,
+          no,
+          approved,
+          chair: c.members[0].id,
+          present: c.members.length,
+          eligible: c.members.length,
+          votes: memberVotes,
+        };
+        point.proposal = approved ? "accept" : "reject";
         point.final = point.proposal;
       }
       const protocolDate = String(form.get("protocolDate") || date);
