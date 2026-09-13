@@ -156,6 +156,7 @@ export default function CaseWorkspace({
   const hideRequestBlocks =
     role === "commission" ||
     c.status === "documents_review" ||
+    c.status === "commission_members" ||
     c.status === "commission_voting";
   return (
     <>
