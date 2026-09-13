@@ -510,24 +510,19 @@ export function applyAction(
       break;
     }
     case "analysis": {
-      if (form.has("authorityArguments")) {
+      if (form.has("davgaArguments")) {
         const memberPositions = Array.from({ length: 20 }, (_, index) => {
           const number = index + 1;
           const name = String(form.get(`certificateMember_${number}`) || "").trim();
-          const argument = String(
-            form.get(`certificateArgument_${number}`) || "",
-          ).trim();
-          return name ? { id: String(number), name, argument } : null;
+          return name ? { id: String(number), name, argument: "" } : null;
         }).filter(
           (member): member is { id: string; name: string; argument: string } =>
             member !== null,
         );
         if (!memberPositions.length)
           throw new Error("Добавьте хотя бы одного члена апелляционной комиссии");
-        if (memberPositions.some((member) => !member.argument))
-          throw new Error("Заполните довод каждого члена апелляционной комиссии");
         c.certificate = {
-          authorityArguments: text("authorityArguments", "Доводы ДВГА"),
+          davgaArguments: text("davgaArguments", "Доводы ДАВГА"),
           memberPositions,
         };
         c.status = "certificate_approval";
