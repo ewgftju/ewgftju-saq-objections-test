@@ -736,5 +736,7 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   assert.match(html, /Мотивированный ответ ДВГА/);
   assert.match(html, /Доводы ДАВГА для справки/);
   assert.match(html, /Доводы рабочего органа \(ДАВГА МФ РК\):/);
+  assert.match(html, /ФИО 1/);
+  assert.match(html, /certificate-members-table/);
   assert.match(html, /ГУ «Управление образования»/);
 });
