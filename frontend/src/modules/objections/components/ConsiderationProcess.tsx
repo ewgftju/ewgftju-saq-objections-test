@@ -80,7 +80,7 @@ const TASK_HELP: Partial<Record<Action, string>> = {
   screen:
     "Проверьте заявителя, исходный документ, срок подачи и компетенцию органа. Назначьте ответственного и зафиксируйте основание принятия к рассмотрению.",
   request:
-    "Укажите адресата и срок рассмотрения. Система сформирует запрос и приложение к нему по шаблону.",
+    "Выберите, куда направить запрос: в ДВГА/КВГА или в другой орган. Для ДВГА/КВГА адресат выбирается из списка; для другого органа адресат и текст запроса заполняются вручную.",
   "send-request-approval":
     "Проверьте сформированные запрос и приложение, затем направьте их директору ДАВГА на согласование.",
   "approve-request":
@@ -118,6 +118,19 @@ const TASK_HELP: Partial<Record<Action, string>> = {
   "court-result":
     "Зарегистрируйте поступивший судебный акт и его последствия для дальнейшего исполнения решения.",
 };
+
+function openRequest(
+  mode: "dvga-kvga" | "other",
+  onAction: (action: Action, role: Role) => void,
+  role: Role,
+) {
+  try {
+    sessionStorage.setItem("saq.objections.request-mode", mode);
+  } catch {
+    // The modal defaults to the DVGА/KVGА form when storage is unavailable.
+  }
+  onAction("request", role);
+}
 
 export default function ConsiderationProcess({
   c,
@@ -181,9 +194,25 @@ export default function ConsiderationProcess({
             </p>
           </div>
           <div className="consideration-task-action">
-            <Button primary onClick={() => onAction(next.action, next.role)}>
-              {c.status === "received" ? "Начать рассмотрение" : next.label}
-            </Button>
+            {c.status === "accepted" && next.action === "request" ? (
+              <>
+                <Button
+                  primary
+                  onClick={() => openRequest("dvga-kvga", onAction, next.role)}
+                >
+                  Сформировать запрос в ДВГА/КВГА
+                </Button>
+                <Button
+                  onClick={() => openRequest("other", onAction, next.role)}
+                >
+                  Сформировать запрос в другой орган
+                </Button>
+              </>
+            ) : (
+              <Button primary onClick={() => onAction(next.action, next.role)}>
+                {c.status === "received" ? "Начать рассмотрение" : next.label}
+              </Button>
+            )}
             {role !== next.role && (
               <small>Действие выполняет {ROLES[next.role]}.</small>
             )}

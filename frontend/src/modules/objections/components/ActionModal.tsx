@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Action, ObjectionCase } from "../../../types";
 import { Button, Modal, Notice } from "../../../components/ui";
+import { DEMO_USER } from "../../../config";
 import { actionForm } from "../formDefinitions";
 import type { FormField, FormValues } from "../formDefinitions";
 import { disputed } from "../services/decisions";
@@ -162,6 +163,14 @@ function VotingFields({ c, values }: { c: ObjectionCase; values: FormValues }) {
   );
 }
 
+function requestRecipientField(field: FormField): FormField {
+  if (field.name !== "recipient" || field.type !== "select") return field;
+  return {
+    ...field,
+    options: field.options?.filter(([value]) => value !== "other"),
+  };
+}
+
 export default function ActionModal({
   action,
   c,
@@ -180,21 +189,33 @@ export default function ActionModal({
   const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const [certificateMembers, setCertificateMembers] = useState([1]);
+  const [requestMode] = useState<"dvga-kvga" | "other">(() => {
+    if (action !== "request") return "dvga-kvga";
+    try {
+      const stored = sessionStorage.getItem("saq.objections.request-mode");
+      sessionStorage.removeItem("saq.objections.request-mode");
+      return stored === "other" ? "other" : "dvga-kvga";
+    } catch {
+      return "dvga-kvga";
+    }
+  });
+  const isOtherRequest = action === "request" && requestMode === "other";
   const definition = actionForm(action, c, date, values);
   const requestDeadline =
     values.deadline ||
     definition.fields.find((field) => field.name === "deadline")?.value ||
     `${date}T18:00`;
-  const requestRecipient =
-    values.recipient ??
-    definition.fields.find((field) => field.name === "recipient")?.value ??
-    "";
-  const requestRecipientForPreview =
-    requestRecipient === "other"
-      ? values.recipientOther || ""
-      : requestRecipient;
-  const customRequestText =
-    requestRecipient === "other" ? values.customRequestText ?? "" : undefined;
+  const requestRecipient = isOtherRequest
+    ? "other"
+    : values.recipient ??
+      definition.fields.find((field) => field.name === "recipient")?.value ??
+      "";
+  const requestRecipientForPreview = isOtherRequest
+    ? values.recipientOther || ""
+    : requestRecipient;
+  const customRequestText = isOtherRequest
+    ? values.customRequestText ?? ""
+    : undefined;
   const protocolMembers = c.members.map((member) => ({
     ...member,
     present:
@@ -220,7 +241,13 @@ export default function ActionModal({
   );
   return (
     <Modal
-      title={definition.title}
+      title={
+        action === "request"
+          ? isOtherRequest
+            ? "Сформировать запрос в другой орган"
+            : "Сформировать запрос в ДВГА/КВГА"
+          : definition.title
+      }
       onClose={onClose}
       wide={
         action === "vote" ||
@@ -266,15 +293,23 @@ export default function ActionModal({
           <>
             <div className="request-modal-details">
               <div>
-                <span>Автор</span>
-                <b>Исполнитель</b>
+                <span>Исполнитель</span>
+                <b>{DEMO_USER.fullName}</b>
               </div>
               <div>
                 <span>Печатная форма</span>
-                <b>Формируется по шаблону</b>
+                <b>
+                  {isOtherRequest
+                    ? "Шаблон запроса в другой орган"
+                    : "Шаблон запроса в ДВГА/КВГА"}
+                </b>
               </div>
             </div>
-            {definition.note && <Notice>{definition.note}</Notice>}
+            <Notice>
+              {isOtherRequest
+                ? "Заполните адресата и текст запроса. Значения автоматически подставятся в печатную форму по шаблону."
+                : "Выберите ДВГА/КВГА. Срок рассмотрения рассчитывается автоматически, исполнитель определяется по текущему пользователю."}
+            </Notice>
             <div className="request-modal-tabs" role="tablist">
               <button
                 type="button"
@@ -292,30 +327,48 @@ export default function ActionModal({
               </button>
             </div>
             <div hidden={requestTab !== "form"} className="form-grid">
-              {definition.fields.map((field) =>
-                field.name === "recipient" ? (
-                  <div key={field.name}>
-                    <Field field={field} />
-                    {requestRecipient === "other" && (
-                      <>
-                        <label className="field">
-                          <span>Укажите адресата</span>
-                          <input name="recipientOther" required />
-                        </label>
-                        <label className="field">
-                          <span>Текст запроса</span>
-                          <textarea
-                            name="customRequestText"
-                            rows={8}
-                            required
-                          />
-                        </label>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <Field key={field.name} field={field} />
-                ),
+              {isOtherRequest ? (
+                <>
+                  <input type="hidden" name="recipient" value="other" />
+                  <label className="field">
+                    <span>
+                      Кому направить запрос <span className="required"> *</span>
+                    </span>
+                    <input
+                      name="recipientOther"
+                      defaultValue={values.recipientOther || ""}
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <span>
+                      Текст запроса <span className="required"> *</span>
+                    </span>
+                    <textarea
+                      name="customRequestText"
+                      defaultValue={values.customRequestText || ""}
+                      rows={10}
+                      required
+                    />
+                  </label>
+                </>
+              ) : (
+                <>
+                  {definition.fields.map((field) => (
+                    <Field
+                      key={field.name}
+                      field={requestRecipientField(field)}
+                    />
+                  ))}
+                  <label className="field">
+                    <span>Исполнитель</span>
+                    <input
+                      name="executor"
+                      value={DEMO_USER.fullName}
+                      readOnly
+                    />
+                  </label>
+                </>
               )}
             </div>
             <div hidden={requestTab !== "print"} className="request-print-preview">
