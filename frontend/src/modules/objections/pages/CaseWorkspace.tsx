@@ -313,7 +313,7 @@ export default function CaseWorkspace({
                   );
                   return responseMaterials.length ? (
                     <section className="request-documents-section">
-                      <h4>Полученный ответ ДВГА/КВГА</h4>
+                      <h4>Полученный(ые) ответ на запрос(ы)</h4>
                       <div className="request-documents-list">
                         {responseMaterials.map((document) => (
                           <div
