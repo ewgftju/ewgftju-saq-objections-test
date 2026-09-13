@@ -434,6 +434,20 @@
   border-bottom: 2px solid #111;
   white-space: pre-wrap;
 }
+.certificate-members-table {
+  table-layout: fixed;
+}
+.certificate-members-table th,
+.certificate-members-table td {
+  min-height: 42px;
+  padding: 10px;
+  border: 1px solid #111;
+  vertical-align: top;
+}
+.certificate-members-table th {
+  text-align: center;
+  font-weight: 700;
+}
 .request-print-preview .protocol-template {
   width: min(860px, 100%);
   min-height: 1080px;
