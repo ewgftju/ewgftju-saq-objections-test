@@ -108,7 +108,9 @@ export function actionForm(
 ): FormDefinition {
   const day = input("date", "Дата действия", date, "date");
   let fields: FormField[] =
-    action === "request" || action === "request-other" ? [] : [day];
+    action === "request" || action === "request-other" || action === "vote"
+      ? []
+      : [day];
   let title = "Действие по обращению";
   let note = "";
   switch (action) {
@@ -342,18 +344,9 @@ export function actionForm(
       fields.push(
         input("number", "Номер протокола", "ПР-" + c.id),
         input("protocolDate", "Дата протокола", date, "date"),
-        input(
-          "audio",
-          "Реквизиты аудиозаписи",
-          "Аудиозапись заседания комиссии № 4",
-        ),
-        check(
-          "recusalDecision",
-          "Конфликты интересов проверены; решения по отводам оформлены",
-        ),
       );
       note =
-        "Состав, присутствие, отводы и голоса задаются ниже. Секретарь не голосует. Для принятия проекта требуется кворум и большинство; равенство разрешает голос председательствующего.";
+        "Укажите реквизиты протокола и состав участников заседания. Печатная форма обновляется в реальном времени.";
       break;
     case "sign":
       title = "Подписание протокола";
