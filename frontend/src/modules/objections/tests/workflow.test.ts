@@ -685,7 +685,7 @@ test("дело открывает процесс, а одно действие �
   assert.doesNotMatch(controlHtml, /Позиции комиссии/);
 });
 
-test("справка выводит позиции членов АК в печатной форме", () => {
+test("справка выводит доводы ДВГА и ДАВГА в печатной форме", () => {
   const h = harness(0);
   screen(h);
   h.run("request", "work", {
@@ -711,11 +711,9 @@ test("справка выводит позиции членов АК в печа
   );
   h.run("position", "work");
   h.run("analysis", "work", {
-    authorityArguments: "Доводы ДВГА для справки",
+    davgaArguments: "Доводы ДАВГА для справки",
     certificateMember_1: "ФИО 1",
-    certificateArgument_1: "Довод первого члена АК",
     certificateMember_2: "ФИО 2",
-    certificateArgument_2: "Довод второго члена АК",
   });
   assert.equal(h.c.status, "certificate_approval");
   h.run("approve-certificate", "director");
@@ -734,8 +732,9 @@ test("справка выводит позиции членов АК в печа
       document: certificate,
     }),
   );
-  assert.match(html, /Доводы ДВГА для справки/);
-  assert.match(html, /ФИО 1/);
-  assert.match(html, /Довод второго члена АК/);
+  assert.match(html, /Нарушение, заполненное ДВГА/);
+  assert.match(html, /Мотивированный ответ ДВГА/);
+  assert.match(html, /Доводы ДАВГА для справки/);
+  assert.match(html, /Доводы рабочего органа \(ДАВГА МФ РК\):/);
   assert.match(html, /ГУ «Управление образования»/);
 });
