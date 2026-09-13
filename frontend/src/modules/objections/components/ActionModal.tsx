@@ -572,6 +572,42 @@ export default function ActionModal({
               />
             </div>
           </>
+        ) : action === "commission-vote" ? (
+          <>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <h3 className="form-section">Оспариваемые пункты</h3>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>№</th>
+                    <th>Описание оспариваемого пункта</th>
+                    <th>Голос</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {disputed(c).map((point) => (
+                    <tr key={point.id}>
+                      <td>{point.number}</td>
+                      <td>{point.title}</td>
+                      <td>
+                        <select
+                          name={`commissionVote_${point.id}`}
+                          defaultValue={values[`commissionVote_${point.id}`] || ""}
+                          required
+                          aria-label={`Голос по пункту ${point.number}`}
+                        >
+                          <option value="">Выберите голос</option>
+                          <option value="yes">За</option>
+                          <option value="no">Против</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : action === "position" ? (
           <>
             <Notice tone="amber">
