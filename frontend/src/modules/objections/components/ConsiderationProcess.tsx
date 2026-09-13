@@ -185,7 +185,10 @@ export default function ConsiderationProcess({
               {c.status === "received" ? "Начать рассмотрение" : next.label}
             </Button>
             {c.status === "accepted" && (
-              <Button onClick={() => onAction("request-other", "work")}>
+              <Button
+                primary
+                onClick={() => onAction("request-other", "work")}
+              >
                 Сформировать запрос в другой орган
               </Button>
             )}
