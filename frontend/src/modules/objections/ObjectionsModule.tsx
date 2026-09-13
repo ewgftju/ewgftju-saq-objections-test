@@ -119,6 +119,12 @@ export default function ObjectionsModule() {
     );
     const next = applyAction(model.state, c.id, action, model.role, form);
     const updated = next.cases.find((item) => item.id === c.id)!;
+    const responseRequestId =
+      action === "fill-request-response"
+        ? updated.requests.find(
+            (request) => request.responded && !request.confirmed,
+          )?.id
+        : undefined;
     if (attached.length) {
       updated.documents.push(
         ...attached.map(({ file, dataUrl }) => ({
@@ -135,6 +141,7 @@ export default function ObjectionsModule() {
           author: ROLES[model.role],
           date: next.date,
           dataUrl,
+          requestId: responseRequestId,
         })),
       );
       updated.history.push({
