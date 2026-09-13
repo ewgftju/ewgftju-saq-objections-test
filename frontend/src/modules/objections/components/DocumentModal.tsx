@@ -241,6 +241,26 @@ export function DocumentContent({
           <b>Доводы рабочего органа (ДАВГА МФ РК):</b>{" "}
           {certificate?.davgaArguments || "—"}
         </p>
+        <table className="certificate-members-table">
+          <tbody>
+            <tr>
+              {(certificate?.memberPositions.length
+                ? certificate.memberPositions
+                : [{ id: "preview", name: "ФИО члена АК", argument: "" }]
+              ).map((member) => (
+                <th key={member.id}>{member.name}</th>
+              ))}
+            </tr>
+            <tr>
+              {(certificate?.memberPositions.length
+                ? certificate.memberPositions
+                : [{ id: "preview", name: "", argument: "" }]
+              ).map((member) => (
+                <td key={member.id} aria-label={`Довод ${member.name}`} />
+              ))}
+            </tr>
+          </tbody>
+        </table>
       </article>
     );
   }
