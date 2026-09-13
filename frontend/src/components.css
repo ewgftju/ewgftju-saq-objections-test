@@ -1166,3 +1166,42 @@
   margin: 0;
   accent-color: var(--blue);
 }
+.agenda-date-field {
+  max-width: 280px;
+  margin-bottom: 16px;
+}
+.agenda-print-preview {
+  max-height: 58vh;
+  overflow: auto;
+  padding: 26px;
+  background: #edf3f6;
+}
+.agenda-print-preview .agenda-template {
+  width: min(820px, 100%);
+  min-height: 1080px;
+  margin: 0 auto;
+  padding: 112px 104px;
+  box-shadow: 0 2px 9px #00263e2e;
+}
+.agenda-template {
+  box-sizing: border-box;
+  color: #111;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+  line-height: 1.2;
+}
+.agenda-template h1 {
+  margin: 0 0 60px;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.12;
+  font-weight: 700;
+}
+.agenda-template ol {
+  margin: 0;
+  padding-left: 38px;
+}
+.agenda-template li {
+  padding-left: 12px;
+  text-align: justify;
+}
