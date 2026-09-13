@@ -20,6 +20,7 @@ export const STATUS = {
   response_ready: "Ответ ожидает фиксации",
   materials: "Анализ материалов",
   certificate_approval: "Справка на согласовании",
+  certificate_signed: "Справка ожидает подписи",
   certificate_approved: "Справка согласована",
   circulated: "Позиции членов комиссии",
   hearing: "Подготовка заслушивания",
