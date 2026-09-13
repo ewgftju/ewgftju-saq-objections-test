@@ -153,6 +153,8 @@ export default function CaseWorkspace({
   onDocument: (kind: string, document?: CaseDocument) => void;
   onUpload: () => void;
 }) {
+  const hideRequestBlocks =
+    role === "commission" || c.status === "documents_review";
   return (
     <>
       <div className="back-row">
@@ -371,7 +373,7 @@ export default function CaseWorkspace({
                     </section>
                   ) : null;
                 })()}
-                {role !== "commission" && c.requests.length > 0 && (
+                {!hideRequestBlocks && c.requests.length > 0 && (
                   <>
                     {[
                       {
@@ -494,7 +496,7 @@ export default function CaseWorkspace({
               <>
                 <div className="section-heading">
                   <h3>Материалы обращения</h3>
-                  {role !== "commission" && (
+                  {!hideRequestBlocks && (
                     <Button onClick={onUpload}>Добавить материал</Button>
                   )}
                 </div>
@@ -525,7 +527,7 @@ export default function CaseWorkspace({
                 {c.documents
                   .filter(
                     (document) =>
-                      role !== "commission" ||
+                      !hideRequestBlocks ||
                       !["request", "request-appendix"].includes(document.kind),
                   )
                   .map((document, index) => (
