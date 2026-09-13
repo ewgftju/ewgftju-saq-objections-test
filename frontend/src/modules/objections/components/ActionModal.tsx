@@ -18,6 +18,14 @@ const COMMISSION_MEMBER_OPTIONS = [
   "ФИО 6",
 ] as const;
 
+const PROTOCOL_MEMBER_OPTIONS = [
+  "Председатель Апелляционной комиссии: ФИО",
+  "Заместитель Председателя Апелляционной комиссии: ФИО",
+  "Директор ДМБУА: ФИО",
+  "Эксперт ДЗМС НПП «АТАМЕКЕН»: ФИО",
+  "Эксперт ОЮЛ «АЗК»: ФИО",
+] as const;
+
 function appendixDocumentHtml(c: ObjectionCase, document: NonNullable<ObjectionCase["documents"][number]>) {
   const safeTitle = document.name.replace(/[&<>"']/g, (character) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!,
@@ -91,7 +99,17 @@ export function Field({ field }: { field: FormField }) {
   );
 }
 
-function VotingFields({ c, values }: { c: ObjectionCase; values: FormValues }) {
+function ProtocolParticipantsFields({
+  rows,
+  values,
+  onAdd,
+  onRemove,
+}: {
+  rows: number[];
+  values: FormValues;
+  onAdd: () => void;
+  onRemove: (row: number) => void;
+}) {
   return (
     <>
       <h3 className="form-section">Участники заседания</h3>
@@ -100,89 +118,46 @@ function VotingFields({ c, values }: { c: ObjectionCase; values: FormValues }) {
           <thead>
             <tr>
               <th>Член комиссии</th>
-              <th>Присутствует</th>
-              <th>Отвод</th>
-              <th>Основание отвода</th>
+              <th>Выберите ФИО</th>
+              <th />
             </tr>
           </thead>
           <tbody>
-            {c.members.map((member) => (
-              <tr key={member.id}>
-                <td>{member.name}</td>
+            {rows.map((row, index) => (
+              <tr key={row}>
                 <td>
-                  <input
-                    type="checkbox"
-                    name={`present_${member.id}`}
-                    defaultChecked={member.present}
-                    aria-label={`${member.name}: присутствует`}
-                  />
+                  {index === 0
+                    ? "Председатель комиссии/Заместитель председателя"
+                    : "Член АК"}
                 </td>
                 <td>
-                  <input
-                    type="checkbox"
-                    name={`recused_${member.id}`}
-                    aria-label={`${member.name}: отвод`}
-                  />
+                  <select
+                    name={`protocolMember_${row}`}
+                    defaultValue={values[`protocolMember_${row}`] || ""}
+                    required
+                    aria-label={`Участник заседания ${index + 1}`}
+                  >
+                    <option value="">Выберите ФИО</option>
+                    {PROTOCOL_MEMBER_OPTIONS.map((member) => (
+                      <option key={member} value={member}>
+                        {member}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td>
-                  <input
-                    name={`reason_${member.id}`}
-                    aria-label={`${member.name}: основание отвода`}
-                    required={!!values[`recused_${member.id}`]}
-                    disabled={!values[`recused_${member.id}`]}
-                  />
+                  <Button type="button" onClick={() => onRemove(row)}>
+                    Удалить строку
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {disputed(c).map((point) => (
-        <div key={point.id}>
-          <h3 className="form-section">
-            Пункт {point.number}: голосование членов апелляционной комиссии
-          </h3>
-          <div className="table-scroll">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Член комиссии</th>
-                  <th>Голос по проекту</th>
-                </tr>
-              </thead>
-              <tbody>
-                {c.members.map((member) => {
-                  const present =
-                    values[`present_${member.id}`] ??
-                    (member.present ? "on" : "");
-                  const excluded = !present || !!values[`recused_${member.id}`];
-                  return (
-                    <tr key={member.id}>
-                      <td>{member.name}</td>
-                      <td>
-                        {excluded ? (
-                          <span className="muted">Не голосует</span>
-                        ) : (
-                          <select
-                            name={`vote_${point.id}_${member.id}`}
-                            required
-                            defaultValue=""
-                            aria-label={`Пункт ${point.number}, ${member.name}`}
-                          >
-                            <option value="">Выберите голос</option>
-                            <option value="yes">За проект</option>
-                            <option value="no">Против проекта</option>
-                          </select>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
+      <Button type="button" onClick={onAdd}>
+        Добавить члена АК
+      </Button>
     </>
   );
 }
@@ -205,6 +180,7 @@ export default function ActionModal({
   const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const [certificateMembers, setCertificateMembers] = useState([1]);
+  const [protocolMemberRows, setProtocolMemberRows] = useState([1]);
   const definition = actionForm(action, c, date, values);
   const isRequest = action === "request" || action === "request-other";
   const isOtherRequest = action === "request-other";
@@ -222,29 +198,16 @@ export default function ActionModal({
     DEMO_USER.fullName;
   const customRequestText =
     isOtherRequest ? values.customRequestText ?? "" : undefined;
-  const protocolMembers = c.members.map((member) => ({
-    ...member,
-    present:
-      values[`present_${member.id}`] === undefined
-        ? member.present
-        : values[`present_${member.id}`] === "on",
-    recused:
-      values[`recused_${member.id}`] === undefined
-        ? member.recused
-        : values[`recused_${member.id}`] === "on",
-    reason: values[`reason_${member.id}`] || member.reason,
-  }));
-  const protocolVotes = Object.fromEntries(
-    disputed(c).map((point) => [
-      point.id,
-      Object.fromEntries(
-        c.members.map((member) => [
-          member.id,
-          values[`vote_${point.id}_${member.id}`] || "",
-        ]),
-      ),
-    ]),
-  );
+  const protocolMembers = protocolMemberRows
+    .map((row) => values[`protocolMember_${row}`])
+    .filter(Boolean)
+    .map((name, index) => ({
+      id: `protocol-member-${index + 1}`,
+      name,
+      present: true,
+      recused: false,
+      reason: "",
+    }));
   const authorityRequestForConfirmation = c.requests.find(
     (request) =>
       !!request.responded &&
@@ -579,27 +542,21 @@ export default function ActionModal({
               {definition.fields.map((field) => (
                 <Field key={field.name} field={field} />
               ))}
-              <Button
-                onClick={(event) => {
-                  const form = event.currentTarget.form!;
-                  form
-                    .querySelectorAll<HTMLSelectElement>('select[name^="vote_"]')
-                    .forEach((select) => {
-                      select.value = "yes";
-                    });
-                  setValues(
-                    Object.fromEntries(
-                      [...new FormData(form).entries()].map(([key, value]) => [
-                        key,
-                        String(value),
-                      ]),
-                    ),
-                  );
-                }}
-              >
-                Единогласно за проекты
-              </Button>
-              <VotingFields c={c} values={values} />
+              <ProtocolParticipantsFields
+                rows={protocolMemberRows}
+                values={values}
+                onAdd={() =>
+                  setProtocolMemberRows((rows) => [
+                    ...rows,
+                    Math.max(0, ...rows) + 1,
+                  ])
+                }
+                onRemove={(row) =>
+                  setProtocolMemberRows((rows) =>
+                    rows.filter((item) => item !== row),
+                  )
+                }
+              />
             </div>
             <div hidden={requestTab !== "print"} className="request-print-preview">
               <DocumentContent
@@ -608,9 +565,9 @@ export default function ActionModal({
                 protocolPreview={{
                   date: values.protocolDate || date,
                   number: values.number || `ПР-${c.id}`,
-                  audio: values.audio || "",
+                  audio: "",
                   members: protocolMembers,
-                  votes: protocolVotes,
+                  votes: {},
                 }}
               />
             </div>
