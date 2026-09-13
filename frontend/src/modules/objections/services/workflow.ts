@@ -1,4 +1,5 @@
 import { CLOSED, OUTCOMES, ROLES } from "../../../data/constants";
+import { DEMO_USER } from "../../../config";
 import type {
   Action,
   ActionOption,
@@ -41,7 +42,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
     },
     accepted: {
       action: "request",
-      label: "Сформировать запрос",
+      label: "Сформировать запрос в ДВГА/КВГА",
       role: "work",
     },
     requested: {
@@ -148,6 +149,12 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
     !CLOSED.includes(c.status) &&
     !["protocol", "decided", "delivered", "court"].includes(c.status);
   if (active) {
+    if (c.status === "accepted")
+      options.push({
+        action: "request-other",
+        label: "Сформировать запрос в другой орган",
+        role: "work",
+      });
     if (c.type === "control" && c.status === "accepted")
       options.push({
         action: "forward",
@@ -344,16 +351,13 @@ export function applyAction(
       note = c.screening;
       break;
     }
-    case "request": {
-      const selectedRecipient = text("recipient", "Кому направить запрос");
-      const recipient =
-        selectedRecipient === "other"
-          ? text("recipientOther", "Укажите адресата")
-          : selectedRecipient;
-      const customText =
-        selectedRecipient === "other"
-          ? text("customRequestText", "Текст запроса")
-          : undefined;
+    case "request":
+    case "request-other": {
+      const otherOrgan = action === "request-other";
+      const recipient = text("recipient", "Кому направить запрос");
+      const customText = otherOrgan
+        ? text("customRequestText", "Текст запроса")
+        : undefined;
       const deadline = `${addWorkdays(date, 2)}T18:00`;
       const requestId = `request-${c.requests.length + 1}`;
       note = `Запрос сформирован для ${recipient}. Срок рассмотрения: ${deadline}.`;
@@ -363,16 +367,21 @@ export function applyAction(
         date,
         text: note,
         deadline,
+        template: otherOrgan ? "other" : "dvga",
+        author: otherOrgan
+          ? DEMO_USER.fullName
+          : String(form.get("executor") || DEMO_USER.fullName),
         customText,
       });
       c.status = "requested";
       doc(`Запрос в ${recipient}`, "request", note, requestId);
-      doc(
-        `Приложение к запросу в ${recipient}`,
-        "request-appendix",
-        `Приложение к запросу в ${recipient}.`,
-        requestId,
-      );
+      if (!otherOrgan)
+        doc(
+          `Приложение к запросу в ${recipient}`,
+          "request-appendix",
+          `Приложение к запросу в ${recipient}.`,
+          requestId,
+        );
       break;
     }
     case "send-request-approval": {
