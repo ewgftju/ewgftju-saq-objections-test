@@ -501,8 +501,9 @@ export function applyAction(
         request.confirmed = date;
         note = "Получен ответ на направленный запрос.";
       }
-      c.status =
-        pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
+      c.status = authorityRequest
+        ? "materials"
+        : pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
           ? "request_approved"
           : "materials";
       doc("Полученные материалы по запросу", "position", note);
