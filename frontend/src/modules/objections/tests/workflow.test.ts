@@ -763,7 +763,15 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   h.run("review-commission-documents", "commission");
   assert.equal(h.c.status, "commission_voting");
   assert.equal(nextAction(h.c)?.action, "commission-vote");
-  h.run("commission-vote", "commission");
+  h.run(
+    "commission-vote",
+    "commission",
+    Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .map((point) => [`commissionVote_${point.id}`, "yes"]),
+    ),
+  );
   assert.equal(h.c.status, "circulated");
   h.run("members", "work", { meetingConducted: "on" });
   assert.equal(h.c.status, "meeting");
