@@ -371,7 +371,7 @@ export default function CaseWorkspace({
                     </section>
                   ) : null;
                 })()}
-                {c.requests.length > 0 && (
+                {role !== "commission" && c.requests.length > 0 && (
                   <>
                     {[
                       {
@@ -494,7 +494,9 @@ export default function CaseWorkspace({
               <>
                 <div className="section-heading">
                   <h3>Материалы обращения</h3>
-                  <Button onClick={onUpload}>Добавить материал</Button>
+                  {role !== "commission" && (
+                    <Button onClick={onUpload}>Добавить материал</Button>
+                  )}
                 </div>
                 {[
                   {
@@ -520,7 +522,13 @@ export default function CaseWorkspace({
                     </Button>
                   </div>
                 ))}
-                {c.documents.map((document, index) => (
+                {c.documents
+                  .filter(
+                    (document) =>
+                      role !== "commission" ||
+                      !["request", "request-appendix"].includes(document.kind),
+                  )
+                  .map((document, index) => (
                   <div className="document-row" key={index}>
                     <div>
                       <strong>{document.name}</strong>
@@ -544,7 +552,7 @@ export default function CaseWorkspace({
                       </Button>
                     )}
                   </div>
-                ))}
+                  ))}
               </>
             )}
             {tab === "history" && (
