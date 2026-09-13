@@ -221,6 +221,28 @@ export default function ActionModal({
       ),
     ]),
   );
+  const authorityRequestForConfirmation = c.requests.find(
+    (request) =>
+      !!request.responded &&
+      !request.confirmed &&
+      (request.template === "dvga" ||
+        request.recipient.toUpperCase().includes("ДВГА") ||
+        request.recipient.toUpperCase().includes("КВГА")),
+  );
+  const authorityAppendix = authorityRequestForConfirmation
+    ? c.documents.find(
+        (document) =>
+          document.kind === "request-appendix" &&
+          document.requestId === authorityRequestForConfirmation.id,
+      )
+    : undefined;
+  const authorityResponseFiles = authorityRequestForConfirmation
+    ? c.documents.filter(
+        (document) =>
+          document.kind === "authority-response-attachment" &&
+          document.requestId === authorityRequestForConfirmation.id,
+      )
+    : [];
   return (
     <Modal
       title={definition.title}
@@ -229,7 +251,8 @@ export default function ActionModal({
         action === "vote" ||
         isRequest ||
         action === "fill-request-response" ||
-        action === "analysis"
+        action === "analysis" ||
+        action === "position"
       }
     >
       <form
@@ -575,11 +598,49 @@ export default function ActionModal({
                     <b>Из кабинета ДВГА/КВГА</b>
                     <small>Электронное поступление</small>
                   </div>
-                  <em>НЕ ПОСТУПИЛО</em>
+                  <em>{authorityRequestForConfirmation ? "ПОСТУПИЛ" : "НЕ ПОСТУПИЛО"}</em>
                 </div>
-                <div className="response-receipt-empty">
-                  <b>Ответ не поступил</b>
-                </div>
+                {authorityRequestForConfirmation ? (
+                  <div className="response-receipt-materials">
+                    <b>Заполненное приложение</b>
+                    {authorityAppendix ? (
+                      <div className="response-receipt-appendix">
+                        <DocumentContent
+                          c={c}
+                          kind="request-appendix"
+                          document={authorityAppendix}
+                        />
+                      </div>
+                    ) : (
+                      <span className="muted">Приложение не найдено</span>
+                    )}
+                    <b>Подтверждающие документы</b>
+                    {authorityResponseFiles.length ? (
+                      <ul>
+                        {authorityResponseFiles.map((document) =>
+                          document.dataUrl ? (
+                            <li key={document.name}>
+                              <a
+                                href={document.dataUrl}
+                                download={document.filename || document.name}
+                              >
+                                {document.name}
+                              </a>
+                            </li>
+                          ) : (
+                            <li key={document.name}>{document.name}</li>
+                          ),
+                        )}
+                      </ul>
+                    ) : (
+                      <span className="muted">Файлы не приложены</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="response-receipt-empty">
+                    <b>Ответ не поступил</b>
+                  </div>
+                )}
               </section>
               <section className="response-receipt-card response-receipt-manual">
                 <div className="response-receipt-heading">
