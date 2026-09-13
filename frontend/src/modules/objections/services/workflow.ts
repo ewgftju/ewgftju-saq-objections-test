@@ -45,6 +45,15 @@ function pendingOtherRequest(c: ObjectionCase) {
   );
 }
 
+function pendingAuthorityConfirmation(c: ObjectionCase) {
+  return c.requests.find(
+    (request) =>
+      !!request.responded &&
+      !request.confirmed &&
+      isDvgaOrKvgaRequest(request.recipient),
+  );
+}
+
 function directedToDvgaOrKvga(c: ObjectionCase) {
   return c.requests.some((request) => isDvgaOrKvgaRequest(request.recipient));
 }
@@ -86,6 +95,11 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
           role: "work",
         }
         : undefined,
+    response_ready: {
+      action: "position",
+      label: "Ответ получен",
+      role: "work",
+    },
     certificate_approval: {
       action: "approve-certificate",
       label: "Согласовать справку",
@@ -471,18 +485,22 @@ export function applyAction(
             document.snapshot.issues = structuredClone(c.issues);
       });
       note = "Мотивированные ответы ДВГА/КВГА заполнены по всем оспариваемым пунктам.";
-      c.status =
-        pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
-          ? "request_approved"
-          : "materials";
+      c.status = "response_ready";
       doc("Мотивированный ответ ДВГА/КВГА", "authority-response", note);
       break;
     }
     case "position": {
-      note = "Получен ответ на направленный запрос.";
-      const request = pendingOtherRequest(c);
-      if (!request) throw new Error("Нет ожидающего ответа от другого органа");
-      request.responded = date;
+      const authorityRequest = pendingAuthorityConfirmation(c);
+      const request = authorityRequest || pendingOtherRequest(c);
+      if (!request) throw new Error("Нет ожидающего ответа от адресата");
+      if (authorityRequest) {
+        request.confirmed = date;
+        note = "Ответ ДВГА/КВГА и подтверждающие документы зафиксированы инициатором.";
+      } else {
+        request.responded = date;
+        request.confirmed = date;
+        note = "Получен ответ на направленный запрос.";
+      }
       c.status =
         pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
           ? "request_approved"
