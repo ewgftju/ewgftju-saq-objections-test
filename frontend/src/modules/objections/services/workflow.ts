@@ -120,6 +120,11 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Ознакомиться с документами",
       role: "commission",
     },
+    commission_voting: {
+      action: "commission-vote",
+      label: "Проголосовать",
+      role: "commission",
+    },
     materials: {
       action: control ? "control-analysis" : "analysis",
       label: control ? "Изучить административное дело" : "Сформировать справку",
@@ -478,10 +483,17 @@ export function applyAction(
       break;
     }
     case "review-commission-documents": {
-      c.status = "circulated";
+      c.status = "commission_voting";
       title = "Члены АК ознакомились с документами";
-      note = "Ознакомление членов апелляционной комиссии со справкой и материалами обращения завершено.";
+      note = "Ознакомление членов апелляционной комиссии со справкой и материалами обращения завершено. Ожидается голосование членов АК.";
       doc("Ознакомление членов АК с документами", "commission-review", note);
+      break;
+    }
+    case "commission-vote": {
+      c.status = "circulated";
+      title = "Голосование членов АК завершено";
+      note = "Голосование членов апелляционной комиссии завершено. Обращение готово к проведению заседания.";
+      doc("Голосование членов АК", "commission-vote", note);
       break;
     }
     case "fill-request-response": {
