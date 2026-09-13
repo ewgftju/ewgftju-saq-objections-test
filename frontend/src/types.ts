@@ -133,6 +133,8 @@ export interface CaseRequest {
   date: string;
   text: string;
   deadline: string;
+  template?: "dvga" | "other";
+  author?: string;
   customText?: string;
   responded?: string;
 }
@@ -247,6 +249,7 @@ export interface Route {
 export type Action =
   | "screen"
   | "request"
+  | "request-other"
   | "send-request-approval"
   | "approve-request"
   | "approve-certificate"
