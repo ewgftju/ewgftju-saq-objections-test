@@ -716,6 +716,20 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
     certificateMember_2: "ФИО 2",
   });
   assert.equal(h.c.status, "certificate_approval");
+  const certificateMaterialsHtml = renderToStaticMarkup(
+    createElement(CaseWorkspace, {
+      c: h.c,
+      tab: "review",
+      role: "work",
+      onBack() {},
+      onTab() {},
+      onAction() {},
+      onDocument() {},
+      onUpload() {},
+    }),
+  );
+  assert.match(certificateMaterialsHtml, /<h4>Справка<\/h4>/);
+  assert.match(certificateMaterialsHtml, /Скачать Word/);
   h.run("approve-certificate", "director");
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
