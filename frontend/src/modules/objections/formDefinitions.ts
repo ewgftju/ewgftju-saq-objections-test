@@ -344,6 +344,14 @@ export function actionForm(
       fields.push(
         input("number", "Номер протокола", "ПР-" + c.id),
         input("protocolDate", "Дата протокола", date, "date"),
+        {
+          ...input(
+            "secretary",
+            "Секретарь АК",
+            c.assignee === "Не назначен" ? DEMO_USER.fullName : c.assignee,
+          ),
+          readOnly: true,
+        },
       );
       note =
         "Укажите реквизиты протокола и состав участников заседания. Печатная форма обновляется в реальном времени.";
