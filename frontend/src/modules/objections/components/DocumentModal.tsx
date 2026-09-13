@@ -206,6 +206,13 @@ export function DocumentContent({
       .filter((point) => point.disputed)
       .map((point) => point.title)
       .join("; ");
+    const authorityArguments = snapshot.issues
+      .filter((point) => point.disputed)
+      .map(
+        (point) =>
+          `Пункт ${point.number}. Нарушение: ${point.authorityFinding || "—"}\nМотивированный ответ: ${point.position || "—"}`,
+      )
+      .join("\n\n");
     return (
       <article className="print-document certificate-template">
         <h1>Справка</h1>
@@ -224,35 +231,16 @@ export function DocumentContent({
           следующее:
         </p>
         <p className="certificate-template-line">
-          <b>Доводы ДВГА:</b> {certificate?.authorityArguments || "—"}
+          <b>Доводы ДВГА:</b> {authorityArguments || "—"}
         </p>
         <p className="certificate-template-line">
           <b>Доводы объекта гос. аудита (заявителя):</b>{" "}
           {applicantArguments || "—"}
         </p>
-        <p className="certificate-template-section-title">
-          Доводы рабочего органа (ДАВГА МФ РК)
+        <p className="certificate-template-line">
+          <b>Доводы рабочего органа (ДАВГА МФ РК):</b>{" "}
+          {certificate?.davgaArguments || "—"}
         </p>
-        <table className="certificate-members-table">
-          <tbody>
-            <tr>
-              {(certificate?.memberPositions.length
-                ? certificate.memberPositions
-                : [{ id: "preview", name: "ФИО члена АК", argument: "" }]
-              ).map((member) => (
-                <th key={member.id}>{member.name}</th>
-              ))}
-            </tr>
-            <tr>
-              {(certificate?.memberPositions.length
-                ? certificate.memberPositions
-                : [{ id: "preview", name: "", argument: "Довод" }]
-              ).map((member) => (
-                <td key={member.id}>{member.argument || "—"}</td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
       </article>
     );
   }
