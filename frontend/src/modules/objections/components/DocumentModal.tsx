@@ -594,6 +594,18 @@ export function DocumentContent({
   );
 }
 
+export function wordDocumentHtml({
+  c,
+  kind,
+  document,
+}: Pick<Parameters<typeof DocumentContent>[0], "c" | "kind" | "document">) {
+  const css =
+    "body{font:14pt 'Times New Roman',serif;line-height:1.45;color:#111}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #111;padding:8px;vertical-align:top}.certificate-template{padding:20mm 15mm}.certificate-template h1,.certificate-template h2{text-align:center;font-size:16pt}.certificate-template-intro{text-align:justify;text-indent:12mm}.certificate-template-line{padding:6px 0;border-bottom:2px solid #111}.certificate-members-table th{text-align:center}";
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Справка</title><style>${css}</style></head><body>${renderToStaticMarkup(
+    <DocumentContent c={c} kind={kind} document={document} />,
+  )}</body></html>`;
+}
+
 export default function DocumentModal(props: {
   c: ObjectionCase;
   kind: string;
