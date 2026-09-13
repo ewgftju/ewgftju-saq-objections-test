@@ -545,6 +545,21 @@ test("совместимость сохранения, прямые ссылки
   assert.match(caseCsv(state.cases), /'=CMD\(\)/);
 });
 
+test("сохранённое до обновления голосование переводится на выбор участников АК", () => {
+  const legacy = initialState();
+  legacy.version = 1;
+  legacy.cases[0].status = "commission_voting";
+  const storage = new Map<string, string>([
+    [STORAGE_KEY, JSON.stringify(legacy)],
+  ]);
+  const state = createDemoRepository({
+    getItem: (key) => storage.get(key) || null,
+    setItem: (key, value) => storage.set(key, value),
+  }).load();
+  assert.equal(state.version, 2);
+  assert.equal(state.cases[0].status, "commission_members");
+});
+
 test("дело открывает процесс, а одно действие передаёт задачу вместе с ролью исполнителя", () => {
   const h = harness();
   const path = pathForRoute({ page: "detail", caseId: h.c.id });
