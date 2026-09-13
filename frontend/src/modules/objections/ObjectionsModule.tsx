@@ -207,6 +207,11 @@ export default function ObjectionsModule() {
             onBack={() => model.navigate({ page: "registry" })}
             onTab={(tab) => model.navigate({ ...model.route, tab })}
             onAction={(action, role) => {
+              if (action === "commission-vote") {
+                model.setRole(role);
+                setDialog({ type: "action", action });
+                return;
+              }
               if (
                 action === "screen" ||
                 action === "send-request-approval" ||
