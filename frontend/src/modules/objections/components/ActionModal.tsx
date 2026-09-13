@@ -238,12 +238,28 @@ export default function ActionModal({
   onSubmit: (form: FormData) => void | Promise<void>;
   onClose: () => void;
 }) {
-  const [values, setValues] = useState<FormValues>({});
+  const [values, setValues] = useState<FormValues>(() =>
+    action === "vote"
+      ? Object.fromEntries(
+          c.members.map((member, index) => [
+            `protocolMember_${member.id.replace("protocol-member-", "") || index + 1}`,
+            member.name,
+          ]),
+        )
+      : {},
+  );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const [certificateMembers, setCertificateMembers] = useState([1]);
-  const [protocolMemberRows, setProtocolMemberRows] = useState([1]);
+  const [protocolMemberRows, setProtocolMemberRows] = useState(() =>
+    action === "vote" && c.members.length
+      ? c.members.map(
+          (member, index) =>
+            Number(member.id.replace("protocol-member-", "")) || index + 1,
+        )
+      : [1],
+  );
   const definition = actionForm(action, c, date, values);
   const isRequest = action === "request" || action === "request-other";
   const isOtherRequest = action === "request-other";
@@ -320,7 +336,8 @@ export default function ActionModal({
         isRequest ||
         action === "fill-request-response" ||
         action === "analysis" ||
-        action === "position"
+        action === "position" ||
+        action === "choose-commission-members"
       }
     >
       <form
@@ -571,6 +588,25 @@ export default function ActionModal({
                 }}
               />
             </div>
+          </>
+        ) : action === "choose-commission-members" ? (
+          <>
+            {definition.note && <Notice>{definition.note}</Notice>}
+            <ProtocolParticipantsFields
+              rows={protocolMemberRows}
+              values={values}
+              onAdd={() =>
+                setProtocolMemberRows((rows) => [
+                  ...rows,
+                  Math.max(0, ...rows) + 1,
+                ])
+              }
+              onRemove={(row) =>
+                setProtocolMemberRows((rows) =>
+                  rows.filter((item) => item !== row),
+                )
+              }
+            />
           </>
         ) : action === "vote" ? (
           <>
