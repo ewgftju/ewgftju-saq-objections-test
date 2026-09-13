@@ -765,6 +765,12 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в ДВГА<\/h4>/);
   assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в другие органы<\/h4>/);
   h.run("review-commission-documents", "commission");
+  assert.equal(h.c.status, "commission_members");
+  assert.equal(nextAction(h.c)?.action, "choose-commission-members");
+  h.run("choose-commission-members", "commission", {
+    protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
+    protocolMember_2: "Директор ДМБУА: ФИО",
+  });
   assert.equal(h.c.status, "commission_voting");
   assert.equal(nextAction(h.c)?.action, "commission-vote");
   h.run(
