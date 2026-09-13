@@ -235,6 +235,10 @@ test("ответ ДВГА сначала фиксируется инициато
   const h = harness();
   screen(h);
   h.run("request", "work", { recipient: "КВГА" });
+  h.run("request-other", "work", {
+    recipient: "Экспертная организация",
+    customRequestText: "Просим предоставить заключение.",
+  });
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
   h.run(
