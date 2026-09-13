@@ -1154,3 +1154,15 @@
     padding: 16px;
   }
 }
+.session-case-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+.session-case-selector input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--blue);
+}
