@@ -115,6 +115,11 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Направить справку и документы членам АК",
       role: "work",
     },
+    documents_review: {
+      action: "review-commission-documents",
+      label: "Ознакомиться с документами",
+      role: "commission",
+    },
     materials: {
       action: control ? "control-analysis" : "analysis",
       label: control ? "Изучить административное дело" : "Сформировать справку",
@@ -466,10 +471,17 @@ export function applyAction(
     case "send-certificate-to-commission": {
       if (!c.certificate)
         throw new Error("Справка по доводам не сформирована");
-      c.status = "circulated";
+      c.status = "documents_review";
       title = "Справка и материалы направлены членам АК";
       note = "Справка и все документы по обращению направлены членам апелляционной комиссии для ознакомления.";
       doc("Справка и материалы для членов АК", "circulation", note);
+      break;
+    }
+    case "review-commission-documents": {
+      c.status = "circulated";
+      title = "Члены АК ознакомились с документами";
+      note = "Ознакомление членов апелляционной комиссии со справкой и материалами обращения завершено.";
+      doc("Ознакомление членов АК с документами", "commission-review", note);
       break;
     }
     case "fill-request-response": {
