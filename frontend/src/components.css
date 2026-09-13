@@ -817,6 +817,42 @@
 .response-receipt-fields {
   padding: 16px;
 }
+.response-receipt-materials {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  padding: 14px 16px;
+  overflow: auto;
+}
+.response-receipt-materials > b {
+  font-size: 13px;
+}
+.response-receipt-materials ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.response-receipt-materials a {
+  overflow-wrap: anywhere;
+}
+.response-receipt-appendix .appendix-template {
+  min-height: auto;
+  padding: 0;
+  font-size: 10px;
+}
+.response-receipt-appendix .appendix-template-number {
+  margin: 0 0 6px !important;
+  font-size: 11px !important;
+}
+.response-receipt-appendix .appendix-template table {
+  font-size: 9px;
+}
+.response-receipt-appendix .appendix-template th,
+.response-receipt-appendix .appendix-template td {
+  padding: 4px;
+}
 @media (max-width: 700px) {
   .response-receipt-grid,
   .request-modal-details {
