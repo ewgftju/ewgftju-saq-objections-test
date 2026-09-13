@@ -504,17 +504,6 @@ export default function ActionModal({
                       ))}
                     </select>
                   </label>
-                  <label className="field">
-                    <span>
-                      Довод <span className="required"> *</span>
-                    </span>
-                    <textarea
-                      name={`certificateArgument_${number}`}
-                      defaultValue={values[`certificateArgument_${number}`] || ""}
-                      rows={3}
-                      required
-                    />
-                  </label>
                 </section>
               ))}
               <Button
@@ -530,11 +519,11 @@ export default function ActionModal({
               </Button>
               <label className="field certificate-authority-arguments">
                 <span>
-                  Доводы ДВГА <span className="required"> *</span>
+                  Доводы ДАВГА <span className="required"> *</span>
                 </span>
                 <textarea
-                  name="authorityArguments"
-                  defaultValue={values.authorityArguments || ""}
+                  name="davgaArguments"
+                  defaultValue={values.davgaArguments || ""}
                   rows={4}
                   required
                 />
@@ -545,13 +534,13 @@ export default function ActionModal({
                 c={c}
                 kind="certificate"
                 certificatePreview={{
-                  authorityArguments: values.authorityArguments || "",
+                  davgaArguments: values.davgaArguments || "",
                   memberPositions: certificateMembers.map((number) => ({
                     id: String(number),
                     name:
                       values[`certificateMember_${number}`] ||
                       COMMISSION_MEMBER_OPTIONS[0],
-                    argument: values[`certificateArgument_${number}`] || "",
+                    argument: "",
                   })),
                 }}
               />
