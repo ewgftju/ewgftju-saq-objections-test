@@ -761,6 +761,9 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в ДВГА<\/h4>/);
   assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в другие органы<\/h4>/);
   h.run("review-commission-documents", "commission");
+  assert.equal(h.c.status, "commission_voting");
+  assert.equal(nextAction(h.c)?.action, "commission-vote");
+  h.run("commission-vote", "commission");
   assert.equal(h.c.status, "circulated");
   h.run("members", "work", { meetingConducted: "on" });
   assert.equal(h.c.status, "meeting");
