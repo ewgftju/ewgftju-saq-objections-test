@@ -10,6 +10,8 @@ export interface ObjectionsRepository {
 export const STORAGE_KEY = "saq.objections.demo.v1";
 const CURRENT_VERSION = 2;
 
+// Version 2 inserts the participant-selection step before commission voting.
+
 export function initialState(): DemoState {
   return { version: CURRENT_VERSION, date: "2026-09-08", cases: seed() };
 }
