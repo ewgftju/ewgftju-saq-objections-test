@@ -212,6 +212,7 @@ export default function ObjectionsModule() {
                 action === "approve-certificate" ||
                 action === "sign-certificate" ||
                 action === "send-certificate-to-commission" ||
+                action === "review-commission-documents" ||
                 action === "members"
               ) {
                 const form = new FormData();
@@ -262,6 +263,8 @@ export default function ObjectionsModule() {
                         ? "Справка подписана"
                       : action === "send-certificate-to-commission"
                         ? "Справка и документы направлены членам АК"
+                        : action === "review-commission-documents"
+                          ? "Члены АК ознакомились с документами"
                         : action === "members"
                           ? "Заседание по данному делу проведено"
                         : "Запрос направлен на согласование",
