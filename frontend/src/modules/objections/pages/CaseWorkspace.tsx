@@ -154,7 +154,9 @@ export default function CaseWorkspace({
   onUpload: () => void;
 }) {
   const hideRequestBlocks =
-    role === "commission" || c.status === "documents_review";
+    role === "commission" ||
+    c.status === "documents_review" ||
+    c.status === "commission_voting";
   return (
     <>
       <div className="back-row">
