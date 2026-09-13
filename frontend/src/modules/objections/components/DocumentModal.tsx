@@ -329,7 +329,10 @@ export function DocumentContent({
                         : (votes?.[point.id] as { votes?: Record<string, string> } | undefined)?.votes?.[member.id] === "yes" ||
                             protocolPreview?.votes?.[point.id]?.[member.id] === "yes"
                           ? "За"
-                          : "Против"}
+                          : (votes?.[point.id] as { votes?: Record<string, string> } | undefined)?.votes?.[member.id] === "no" ||
+                              protocolPreview?.votes?.[point.id]?.[member.id] === "no"
+                            ? "Против"
+                            : "—"}
                     </td>
                     <td>{member.reason || "—"}</td>
                   </tr>
