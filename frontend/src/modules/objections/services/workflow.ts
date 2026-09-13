@@ -15,7 +15,7 @@ import {
   reviewDeadline,
   workdaysBetween,
 } from "./deadlines";
-import { disputed, evaluateVotes, overall, remainingIssues } from "./decisions";
+import { disputed, overall, remainingIssues } from "./decisions";
 
 export const controlDecisions = [
   ["cancel", "Отменить административный акт"],
@@ -706,30 +706,26 @@ export function applyAction(
       doc("Протокол заслушивания", "hearing", c.hearing.note);
       break;
     case "vote": {
-      checked(form, "recusalDecision");
-      c.members = c.members.map((member) => ({
-        ...member,
-        present: form.has(`present_${member.id}`),
-        recused: form.has(`recused_${member.id}`),
-        reason: form.has(`recused_${member.id}`)
-          ? text(`reason_${member.id}`, "Основание отвода")
-          : "",
+      const selectedMembers = Array.from(form.entries())
+        .filter(
+          ([name, value]) =>
+            name.startsWith("protocolMember_") &&
+            typeof value === "string" &&
+            value.trim().length > 0,
+        )
+        .map(([, value]) => String(value).trim());
+      if (!selectedMembers.length)
+        throw new Error("Добавьте хотя бы одного участника заседания");
+      c.members = selectedMembers.map((name, index) => ({
+        id: `protocol-member-${index + 1}`,
+        name,
+        present: true,
+        recused: false,
+        reason: "",
       }));
-      c.votes = {};
+      c.votes = null;
       for (const point of disputed(c)) {
         if (!point.proposal) point.proposal = "accept";
-        const votes = Object.fromEntries(
-          c.members.map((member) => [
-            member.id,
-            String(form.get(`vote_${point.id}_${member.id}`) || ""),
-          ]),
-        );
-        const result = evaluateVotes(c.members, votes);
-        if (!result.approved)
-          throw new Error(
-            `Проект по пункту ${point.number} не принят. Скорректируйте проект после возврата на анализ или перенесите заседание.`,
-          );
-        c.votes[point.id] = { ...result, votes };
         point.final = point.proposal;
       }
       const protocolDate = String(form.get("protocolDate") || date);
@@ -737,13 +733,13 @@ export function applyAction(
       c.meeting = {
         date: protocolDate,
         number: text("number", "Номер протокола"),
-        audio: text("audio", "Реквизиты аудиозаписи"),
+        audio: "",
       };
       c.status = "protocol";
       doc(
         "Проект протокола заседания",
         "protocol",
-        "Голоса зафиксированы. Ожидаются подписи присутствующих членов и секретаря.",
+        "Состав участников зафиксирован. Ожидаются подписи участников и секретаря.",
       );
       break;
     }
