@@ -108,7 +108,10 @@ export function actionForm(
 ): FormDefinition {
   const day = input("date", "Дата действия", date, "date");
   let fields: FormField[] =
-    action === "request" || action === "request-other" || action === "vote"
+    action === "request" ||
+    action === "request-other" ||
+    action === "vote" ||
+    action === "commission-vote"
       ? []
       : [day];
   let title = "Действие по обращению";
@@ -355,6 +358,11 @@ export function actionForm(
       );
       note =
         "Укажите реквизиты протокола и состав участников заседания. Печатная форма обновляется в реальном времени.";
+      break;
+    case "commission-vote":
+      title = "Проголосовать";
+      note =
+        "Выберите результат голосования по каждому оспариваемому пункту.";
       break;
     case "sign":
       title = "Подписание протокола";
