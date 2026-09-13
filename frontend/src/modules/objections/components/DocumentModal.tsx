@@ -15,6 +15,7 @@ import {
   formatMoney,
 } from "../../../utils/dateFormat";
 import { downloadFile } from "../../../utils/download";
+import { DEMO_USER } from "../../../config";
 
 export function DocumentContent({
   c,
@@ -29,7 +30,10 @@ export function DocumentContent({
   c: ObjectionCase;
   kind: string;
   document?: CaseDocument;
-  requestPreview?: Pick<CaseRequest, "recipient" | "deadline" | "customText">;
+  requestPreview?: Pick<
+    CaseRequest,
+    "recipient" | "deadline" | "customText" | "template" | "author"
+  >;
   appendixFindingPreview?: Record<string, string>;
   appendixPreview?: Record<string, string>;
   certificatePreview?: CaseCertificate;
@@ -57,6 +61,63 @@ export function DocumentContent({
           ? "Жалоба"
           : "Возражение"
         : "Материал обращения");
+  if (kind === "request" && request && request.template === "other")
+    return (
+      <article className="print-document other-request-template">
+        <div className="other-request-template-header">
+          <div>
+            ҚАЗАҚСТАН РЕСПУБЛИКАСЫ
+            <br />
+            ҚАРЖЫ МИНИСТРЛІГІ
+          </div>
+          <span>ҚР</span>
+          <div>
+            МИНИСТЕРСТВО ФИНАНСОВ
+            <br />
+            РЕСПУБЛИКИ КАЗАХСТАН
+          </div>
+        </div>
+        <div className="other-request-template-contacts">
+          <span>
+            010000, Астана қаласы, Мәңгілік Ел даңғылы 8, 4-кіреберіс
+            <br />
+            тел.: +7 (7172) 75-04-71, 75-04-89, факс: 75-03-52
+            <br />
+            administrator@minfin.gov.kz
+          </span>
+          <span>
+            010000, город Астана, проспект Мәңгілік Ел, 8, подъезд 4
+            <br />
+            тел.: +7 (7172) 75-04-71, 75-04-89, факс: 75-03-52
+            <br />
+            administrator@minfin.gov.kz
+          </span>
+        </div>
+        <div className="other-request-template-line" />
+        <p className="other-request-template-recipient">
+          <b>{request.recipient || "<Кому направить запрос>"}</b>
+        </p>
+        <p className="other-request-template-body">
+          {request.customText || "<Текст запроса>"}
+        </p>
+        <div className="other-request-template-signature">
+          <b>
+            Ішкі мемлекеттік аудит
+            <br />
+            бойынша апелляция
+            <br />
+            департаментінің директоры
+          </b>
+          <b>Ш. Күреңбек тегі</b>
+        </div>
+        <p className="other-request-template-executor">
+          Орын.: {request.author || DEMO_USER.fullName}
+          <br />
+          Тел.: 00-00-00
+        </p>
+      </article>
+    );
+
   if (kind === "request" && request)
     return (
       <article className="print-document request-template">
@@ -532,9 +593,11 @@ export default function DocumentModal(props: {
   onClose: () => void;
 }) {
   const [error, setError] = useState("");
+  const otherRequestCss =
+    ".other-request-template{box-sizing:border-box;min-height:880px;padding:30px 48px 54px;font-family:'Times New Roman',Times,serif;font-size:14px;line-height:1.35}.other-request-template-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;color:#0872ae;font-family:Georgia,'Times New Roman',serif;font-size:14px;font-weight:700;line-height:1.05;text-align:center}.other-request-template-header span{display:grid;width:52px;height:52px;place-items:center;border:1px solid #9a7700;border-radius:50%;background:#ddbd47;color:#1f4e35;font-size:13px}.other-request-template-contacts{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px;padding-top:8px;border-top:2px solid #4d9bc4;color:#287dac;font-family:Georgia,'Times New Roman',serif;font-size:9px;line-height:1.3}.other-request-template-contacts span:last-child{text-align:right}.other-request-template-line{height:1px;margin:28px 0 44px;background:#4d9bc4}.other-request-template-recipient{width:46%;margin:0 0 44px auto!important;font-size:14px;line-height:1.4}.other-request-template-body{margin:0!important;overflow-wrap:anywhere;white-space:pre-wrap;text-align:justify;text-indent:28px}.other-request-template-signature{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:end;margin:48px 0 28px;font-size:14px}.other-request-template-executor{margin:0!important;font-size:10px;font-style:italic;line-height:1.25}";
   const css =
     "body{font:14px Arial,sans-serif;line-height:1.6;color:#111;max-width:850px;margin:28px auto;padding:24px}h2{text-align:center}p{white-space:pre-wrap}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:8px;text-align:left}.document-watermark{color:#555;text-align:center;font-size:11px}.document-footer{font-size:12px;border-top:1px solid #bbb;padding-top:16px}.appendix-template{box-sizing:border-box;min-height:680px;padding:52px 54px 96px;font-family:'Times New Roman',Times,serif}.appendix-template-number{margin:0 14px 14px 0!important;font-size:16px!important;text-align:right}.appendix-template table{table-layout:fixed;font-size:16px;line-height:1.35}.appendix-template th,.appendix-template td{border:1px solid #111;padding:7px 9px;vertical-align:top;word-break:break-word}.appendix-template th{text-align:center;font-size:17px;background:white}.appendix-template tbody tr{height:40px}.appendix-template th:first-child,.appendix-template td:first-child{width:5%;text-align:center;font-weight:bold}.appendix-template th:nth-child(2),.appendix-template td:nth-child(2){width:23%}.appendix-template th:nth-child(3),.appendix-template td:nth-child(3){width:31%}.appendix-template th:nth-child(4),.appendix-template td:nth-child(4){width:41%}.certificate-template{box-sizing:border-box;min-height:900px;padding:58px 68px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.45}.certificate-template h1,.certificate-template h2{text-align:center;font-size:22px;margin:0;font-weight:700}.certificate-template h2{font-size:20px;margin-bottom:34px}.certificate-template-intro{text-align:justify;text-indent:28px}.certificate-template-point-list{margin:28px 46px}.certificate-template-lead{margin-top:30px;font-weight:700;text-align:center}.certificate-template-line{border-bottom:2px solid #111;padding:6px 0;margin:20px 0}.certificate-template-section-title{margin:28px 0 12px 46px;font-size:20px;font-weight:700}.certificate-members-table{table-layout:fixed}.certificate-members-table th,.certificate-members-table td{border:1px solid #111;padding:10px;vertical-align:top;white-space:pre-wrap}.certificate-members-table th{text-align:center;font-weight:700}.protocol-template{box-sizing:border-box;padding:56px 64px;font-family:'Times New Roman',Times,serif;font-size:16px;line-height:1.4}.protocol-template h1{margin:0 0 34px;text-align:center;font-size:21px;font-weight:400}.protocol-template-place-date{display:flex;justify-content:space-between;margin-bottom:28px}.protocol-template-intro,.protocol-template-result{text-align:justify;text-indent:28px}.protocol-votes-table{table-layout:fixed}.protocol-votes-table th,.protocol-votes-table td{border:1px solid #111;padding:7px 8px;vertical-align:top}.protocol-votes-table th{text-align:center;font-weight:400}.protocol-template-signatures{margin-top:46px}@page{size:A4;margin:18mm}";
-  const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>SAQ — документ</title><style>${css}</style></head><body>${renderToStaticMarkup(<DocumentContent {...props} />)}</body></html>`;
+  const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>SAQ — документ</title><style>${css}${otherRequestCss}</style></head><body>${renderToStaticMarkup(<DocumentContent {...props} />)}</body></html>`;
   return (
     <Modal title="Просмотр документа" onClose={props.onClose} wide>
       <div className="actions">
