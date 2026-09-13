@@ -567,6 +567,7 @@ test("дело открывает процесс, а одно действие �
   );
   assert.match(requestMaterialsHtml, /Запрос в ДВГА по Атырауской области/);
   assert.match(requestMaterialsHtml, /Приложение к запросу в ДВГА по Атырауской области/);
+  assert.match(requestMaterialsHtml, /Запрос в ДВГА/);
   assert.doesNotMatch(requestMaterialsHtml, /Сформированные документы/);
   assert.ok(h.c.documents.some((document) => document.kind === "request"));
   assert.ok(
