@@ -815,7 +815,7 @@ test("протокол формируется с выбранными участ
   const definition = actionForm("vote", h.c, "2026-09-10", {});
   assert.deepEqual(
     definition.fields.map((field) => field.name),
-    ["number", "protocolDate"],
+    ["number", "protocolDate", "secretary"],
   );
   h.c.status = "meeting";
   h.run("vote", "commission", {
@@ -833,4 +833,23 @@ test("протокол формируется с выбранными участ
   );
   assert.equal(h.c.meeting?.audio, "");
   assert.equal(h.c.votes, null);
+  const protocolHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "protocol",
+      protocolPreview: {
+        date: "2026-09-10",
+        number: "ПР-17",
+        audio: "",
+        members: h.c.members,
+        votes: {},
+      },
+    }),
+  );
+  assert.match(protocolHtml, /Председатель Апелляционной комиссии: ФИО<br\/>/);
+  assert.match(protocolHtml, /Эксперт ОЮЛ «АЗК»: ФИО<br\/>/);
+  assert.doesNotMatch(
+    protocolHtml,
+    /Заместитель Председателя Апелляционной комиссии: Директор ДАВГА/,
+  );
 });
