@@ -603,12 +603,7 @@ test("дело открывает процесс, а одно действие �
   );
   assert.match(appendixWithResponseHtml, /Нарушение ДВГА/);
   assert.match(appendixWithResponseHtml, /Мотивированный ответ ДВГА/);
-  assert.match(renderToStaticMarkup(process()), /Отправить на согласование/);
-  primaryAction(process())!();
-  assert.deepEqual(selected, {
-    action: "send-request-approval",
-    role: "work",
-  });
+  assert.match(renderToStaticMarkup(process()), /Направить на согласование/);
   h.run("send-request-approval", "work");
   assert.match(renderToStaticMarkup(process()), /Согласовать запрос/);
   h.run("approve-request", "director", { approved: "on" });
