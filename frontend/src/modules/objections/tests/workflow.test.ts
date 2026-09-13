@@ -10,7 +10,7 @@ import {
 } from "../../../api/objectionsRepository";
 import { members } from "../../../data/objections";
 import type { Action, DemoState, Role } from "../../../types";
-import { applyAction } from "../services/workflow";
+import { applyAction, nextAction } from "../services/workflow";
 import {
   addMonths,
   filingDeadline,
@@ -213,6 +213,21 @@ test("запрос в другой орган использует отдель�
   assert.match(html, /Экспертная организация/);
   assert.match(html, /Просим представить экспертное заключение/);
   assert.match(html, new RegExp(DEMO_USER.fullName));
+});
+
+test("ответ ДВГА доступен после согласования, даже если создан запрос в другой орган", () => {
+  const h = harness();
+  screen(h);
+  h.run("request", "work", {
+    recipient: "ДВГА по Атырауской области",
+  });
+  h.run("request-other", "work", {
+    recipient: "Экспертная организация",
+    customRequestText: "Просим предоставить заключение.",
+  });
+  h.run("send-request-approval", "work");
+  h.run("approve-request", "director", { approved: "on" });
+  assert.equal(nextAction(h.c)?.action, "fill-request-response");
 });
 
 test("уведомление: сквозной маршрут сохраняет неоспоренный пункт и снимки документов", () => {
