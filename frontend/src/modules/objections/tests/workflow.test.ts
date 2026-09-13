@@ -107,6 +107,7 @@ function prepare(h: Harness, partial = false) {
         ]),
     ),
   );
+  h.run("position", "work");
   analysis(h, partial);
   h.run("members", "work", {
     shared: "on",
@@ -228,6 +229,31 @@ test("ответ ДВГА доступен после согласования, 
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
   assert.equal(nextAction(h.c)?.action, "fill-request-response");
+});
+
+test("ответ ДВГА сначала фиксируется инициатором", () => {
+  const h = harness();
+  screen(h);
+  h.run("request", "work", { recipient: "КВГА" });
+  h.run("send-request-approval", "work");
+  h.run("approve-request", "director", { approved: "on" });
+  h.run(
+    "fill-request-response",
+    "dvga",
+    Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .flatMap((point) => [
+          [`authorityFinding_${point.id}`, "Нарушение ДВГА"],
+          [`authorityResponse_${point.id}`, "Ответ ДВГА"],
+        ]),
+    ),
+  );
+  assert.equal(h.c.status, "response_ready");
+  assert.equal(nextAction(h.c)?.action, "position");
+  h.run("position", "work");
+  assert.equal(h.c.status, "materials");
+  assert.equal(h.c.requests[0].confirmed, "2026-09-08");
 });
 
 test("уведомление: сквозной маршрут сохраняет неоспоренный пункт и снимки документов", () => {
@@ -679,6 +705,7 @@ test("справка выводит позиции членов АК в печа
         ]),
     ),
   );
+  h.run("position", "work");
   h.run("analysis", "work", {
     authorityArguments: "Доводы ДВГА для справки",
     certificateMember_1: "ФИО 1",
