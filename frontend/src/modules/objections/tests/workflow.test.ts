@@ -19,6 +19,7 @@ import {
 } from "../services/deadlines";
 import { evaluateVotes, remainingIssues } from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
+import { AgendaDocument } from "../components/AgendaModal";
 import CasesList from "../pages/CasesList";
 import CaseWorkspace from "../pages/CaseWorkspace";
 import ConsiderationProcess from "../components/ConsiderationProcess";
@@ -783,4 +784,27 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   assert.match(html, /ФИО 1/);
   assert.match(html, /certificate-members-table/);
   assert.match(html, /ГУ «Управление образования»/);
+});
+
+test("повестка дня подставляет реквизиты отмеченного обращения", () => {
+  const h = harness(0);
+  h.c.appealType = "Возражение на аудиторский отчет";
+  h.c.appealNumber = "В-17";
+  h.c.appealDate = "2026-09-09";
+  h.c.org = "КГП «Городской центр услуг»";
+  h.c.issuer = "ДВГА по Атырауской области";
+  h.c.assignee = "Тестовый исполнитель";
+  h.c.issues[0].disputed = true;
+  h.c.issues[0].authorityFinding = "Нарушение, указанное ДВГА";
+  const html = renderToStaticMarkup(
+    createElement(AgendaDocument, {
+      cases: [h.c],
+      meetingDate: "2026-09-24",
+    }),
+  );
+  assert.match(html, /24\.09\.2026/);
+  assert.match(html, /Возражение В-17 от 09\.09\.2026/);
+  assert.match(html, /КГП «Городской центр услуг» на аудиторский отчет/);
+  assert.match(html, /ДВГА по Атырауской области от Нарушение, указанное ДВГА/);
+  assert.match(html, /\(Тестовый исполнитель\)/);
 });
