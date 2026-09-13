@@ -220,9 +220,11 @@ export function ProcessesPage() {
 export function SessionsPage({
   cases,
   onOpen,
+  onAgenda,
 }: {
   cases: ObjectionCase[];
   onOpen: (c: ObjectionCase) => void;
+  onAgenda: (cases: ObjectionCase[]) => void;
 }) {
   const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
   const visible = cases.filter(
@@ -247,7 +249,13 @@ export function SessionsPage({
         title="Заседания комиссии"
         subtitle="Подготовка, голосование и подписанные протоколы"
         action={
-          <Button primary disabled={!selectedCaseIds.length}>
+          <Button
+            primary
+            disabled={!selectedCaseIds.length}
+            onClick={() =>
+              onAgenda(visible.filter((c) => selectedCaseIds.includes(c.id)))
+            }
+          >
             Сформировать повестку дня
           </Button>
         }
