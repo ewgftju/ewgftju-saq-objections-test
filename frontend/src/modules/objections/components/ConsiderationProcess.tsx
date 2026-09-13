@@ -147,6 +147,12 @@ export default function ConsiderationProcess({
   const lastEvent = c.history.at(-1);
   const taskTitle =
     next?.action === "position" ? "Зафиксировать полученный ответ" : next?.label;
+  const taskOwner =
+    next?.action === "approve-certificate"
+      ? "Заместитель директора ДАВГА"
+      : next
+        ? ROLES[next.role]
+        : "";
 
   return (
     <section
@@ -181,7 +187,7 @@ export default function ConsiderationProcess({
             <h4>{taskTitle}</h4>
             <p>{TASK_HELP[next.action]}</p>
             <p className="consideration-owner">
-              Исполнитель: <strong>{ROLES[next.role]}</strong>
+              Исполнитель: <strong>{taskOwner}</strong>
             </p>
           </div>
           <div className="consideration-task-action">
@@ -206,7 +212,7 @@ export default function ConsiderationProcess({
               </Button>
             )}
             {role !== next.role && (
-              <small>Действие выполняет {ROLES[next.role]}.</small>
+              <small>Действие выполняет {taskOwner}.</small>
             )}
             <small>
               {c.status === "accepted"
