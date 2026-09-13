@@ -26,6 +26,7 @@ const OBJECTION_STAGES: ProcessStage[] = [
       "response_ready",
       "materials",
       "certificate_approval",
+      "certificate_signed",
       "certificate_approved",
     ],
   },
@@ -95,6 +96,8 @@ const TASK_HELP: Partial<Record<Action, string>> = {
     "Заполните доводы ДВГА и позиции членов апелляционной комиссии. Система сформирует справку по шаблону.",
   "approve-certificate":
     "Проверьте сформированную справку и согласуйте её для направления членам апелляционной комиссии.",
+  "sign-certificate":
+    "Подпишите согласованную справку. После этого она будет готова к направлению вместе с материалами членам апелляционной комиссии.",
   "send-certificate-to-commission":
     "Направьте согласованную справку и все документы по обращению членам апелляционной комиссии для ознакомления.",
   members:
