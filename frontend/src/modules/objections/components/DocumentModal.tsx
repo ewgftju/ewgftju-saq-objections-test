@@ -284,11 +284,14 @@ export function DocumentContent({
         <p>
           <b>ПРИСУТСТВОВАЛИ (онлайн, Zoom):</b>
           <br />
-          Заместитель Председателя Апелляционной комиссии: Директор ДАВГА
-          <br />
-          Члены Апелляционной комиссии: {presentMembers.map((member) => member.name).join(", ") || "—"}
-          <br />
-          Секретарь Апелляционной комиссии: главный эксперт ДАВГА
+          {presentMembers.length
+            ? presentMembers.map((member) => (
+                <span key={member.id}>
+                  {member.name}
+                  <br />
+                </span>
+              ))
+            : "—"}
         </p>
         <p className="protocol-template-intro">
           Возражение «{snapshot.org}», БИН {snapshot.bin} от{" "}
