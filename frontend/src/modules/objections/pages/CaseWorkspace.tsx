@@ -333,16 +333,6 @@ export default function CaseWorkspace({
                           </div>
                         ))}
                       </div>
-                      {latest && c.status === "requested" && (
-                        <Button
-                          primary
-                          onClick={() =>
-                            onAction("send-request-approval", "work")
-                          }
-                        >
-                          Отправить на согласование
-                        </Button>
-                      )}
                       {latest && c.status === "request_approval" && (
                         <Button
                           primary
