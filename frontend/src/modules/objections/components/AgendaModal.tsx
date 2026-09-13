@@ -40,7 +40,7 @@ export function AgendaDocument({
             <li key={c.id}>
               {appealType.first || "—"} {c.appealNumber || "—"} от{" "}
               {formatDate(c.appealDate || c.filed)} {c.org || "—"}{" "}
-              {appealType.rest} {c.issuer || "—"} от{" "}
+              {appealType.rest} {c.issuer || "—"}{" "}
               {authorityFindings(c) || "—"} ({c.assignee || "—"})
             </li>
           );
@@ -69,10 +69,12 @@ function agendaDocumentHtml(cases: ObjectionCase[], meetingDate: string) {
 export default function AgendaModal({
   cases,
   date,
+  onSend,
   onClose,
 }: {
   cases: ObjectionCase[];
   date: string;
+  onSend: (meetingDate: string) => void;
   onClose: () => void;
 }) {
   const [meetingDate, setMeetingDate] = useState(date);
@@ -113,6 +115,9 @@ export default function AgendaModal({
         <Button onClick={onClose}>Закрыть</Button>
         <Button primary onClick={print}>
           Печать / PDF
+        </Button>
+        <Button primary onClick={() => onSend(meetingDate)}>
+          Направить АК
         </Button>
       </div>
     </Modal>
