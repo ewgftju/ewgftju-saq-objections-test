@@ -745,6 +745,24 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   h.run("sign-certificate", "work");
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
+  assert.equal(h.c.status, "documents_review");
+  assert.equal(nextAction(h.c)?.action, "review-commission-documents");
+  const commissionMaterialsHtml = renderToStaticMarkup(
+    createElement(CaseWorkspace, {
+      c: h.c,
+      tab: "review",
+      role: "commission",
+      onBack() {},
+      onTab() {},
+      onAction() {},
+      onDocument() {},
+      onUpload() {},
+    }),
+  );
+  assert.match(commissionMaterialsHtml, /Полученный\(ые\) ответ на запрос\(ы\)/);
+  assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в ДВГА<\/h4>/);
+  assert.doesNotMatch(commissionMaterialsHtml, /<h4>Запрос в другие органы<\/h4>/);
+  h.run("review-commission-documents", "commission");
   assert.equal(h.c.status, "circulated");
   h.run("members", "work", { meetingConducted: "on" });
   assert.equal(h.c.status, "meeting");
