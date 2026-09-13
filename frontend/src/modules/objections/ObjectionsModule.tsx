@@ -6,6 +6,7 @@ import { ROLES } from "../../data/constants";
 import type { Action, CaseDocument, ObjectionCase } from "../../types";
 import { caseCsv, downloadFile } from "../../utils/download";
 import ActionModal, { Field } from "./components/ActionModal";
+import AgendaModal from "./components/AgendaModal";
 import DocumentModal from "./components/DocumentModal";
 import NewCaseModal from "./components/NewCaseModal";
 import CasesList from "./pages/CasesList";
@@ -22,6 +23,7 @@ import { useObjectionsModel } from "./useObjectionsModel";
 type DialogState =
   | { type: "action"; action: Action }
   | { type: "document"; kind: string; document?: CaseDocument }
+  | { type: "agenda"; cases: ObjectionCase[] }
   | { type: "new" | "clock" | "reset" | "upload" }
   | null;
 
@@ -291,7 +293,11 @@ export default function ObjectionsModule() {
           </Notice>
         ))}
       {model.route.page === "sessions" && (
-        <SessionsPage cases={model.state.cases} onOpen={openCase} />
+        <SessionsPage
+          cases={model.state.cases}
+          onOpen={openCase}
+          onAgenda={(cases) => setDialog({ type: "agenda", cases })}
+        />
       )}
       {model.route.page === "processes" && <ProcessesPage />}
       {model.route.page === "sources" && <SourcesPage />}
@@ -310,6 +316,13 @@ export default function ObjectionsModule() {
           c={c}
           kind={dialog.kind}
           document={dialog.document}
+          onClose={close}
+        />
+      )}
+      {dialog?.type === "agenda" && (
+        <AgendaModal
+          cases={dialog.cases}
+          date={model.state.date}
           onClose={close}
         />
       )}
