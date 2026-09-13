@@ -145,6 +145,8 @@ export default function ConsiderationProcess({
     ? availableExtras.filter((option) => option.action === "supplement")
     : availableExtras;
   const lastEvent = c.history.at(-1);
+  const taskTitle =
+    next?.action === "position" ? "Зафиксировать полученный ответ" : next?.label;
 
   return (
     <section
@@ -176,7 +178,7 @@ export default function ConsiderationProcess({
         <div className="consideration-task">
           <div>
             <span className="consideration-eyebrow">Текущая задача</span>
-            <h4>{next.label}</h4>
+            <h4>{taskTitle}</h4>
             <p>{TASK_HELP[next.action]}</p>
             <p className="consideration-owner">
               Исполнитель: <strong>{ROLES[next.role]}</strong>
