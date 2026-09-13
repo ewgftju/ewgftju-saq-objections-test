@@ -184,6 +184,11 @@ export default function ConsiderationProcess({
             <Button primary onClick={() => onAction(next.action, next.role)}>
               {c.status === "received" ? "Начать рассмотрение" : next.label}
             </Button>
+            {c.status === "accepted" && (
+              <Button onClick={() => onAction("request-other", "work")}>
+                Сформировать запрос в другой орган
+              </Button>
+            )}
             {role !== next.role && (
               <small>Действие выполняет {ROLES[next.role]}.</small>
             )}
