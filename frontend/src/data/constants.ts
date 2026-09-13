@@ -17,6 +17,7 @@ export const STATUS = {
   requested: "Запрос сформирован",
   request_approval: "Запрос на согласовании",
   request_approved: "Запрос согласован",
+  response_ready: "Ответ ожидает фиксации",
   materials: "Анализ материалов",
   certificate_approval: "Справка на согласовании",
   certificate_approved: "Справка согласована",
