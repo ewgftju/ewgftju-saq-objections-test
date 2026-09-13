@@ -22,6 +22,7 @@ export const STATUS = {
   certificate_approval: "Справка на согласовании",
   certificate_signed: "Справка ожидает подписи",
   certificate_approved: "Справка согласована",
+  documents_review: "Документы направлены членам АК",
   circulated: "Позиции членов комиссии",
   hearing: "Подготовка заслушивания",
   hearing_ready: "Заслушивание",
