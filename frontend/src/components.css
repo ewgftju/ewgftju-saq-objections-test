@@ -432,25 +432,7 @@
   margin: 20px 0 !important;
   padding: 6px 0;
   border-bottom: 2px solid #111;
-}
-.certificate-template-section-title {
-  margin: 28px 0 12px 46px !important;
-  font-size: 20px !important;
-  font-weight: 700;
-}
-.certificate-members-table {
-  table-layout: fixed;
-}
-.certificate-members-table th,
-.certificate-members-table td {
-  padding: 10px;
-  border: 1px solid #111;
-  vertical-align: top;
   white-space: pre-wrap;
-}
-.certificate-members-table th {
-  text-align: center;
-  font-weight: 700;
 }
 .request-print-preview .protocol-template {
   width: min(860px, 100%);
