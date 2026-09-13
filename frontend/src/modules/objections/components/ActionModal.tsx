@@ -282,7 +282,11 @@ export default function ActionModal({
               </div>
             </div>
             {definition.note && <Notice>{definition.note}</Notice>}
-            <div className="request-modal-tabs" role="tablist">
+            <div
+              className="request-modal-tabs"
+              role="tablist"
+              aria-label="Режим формирования запроса"
+            >
               <button
                 type="button"
                 className={requestTab === "form" ? "active" : ""}
