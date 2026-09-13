@@ -290,6 +290,46 @@ export default function CaseWorkspace({
                 <h3 className="form-section">
                   Материалы и результаты рассмотрения
                 </h3>
+                {(() => {
+                  const answeredAuthorityRequestIds = new Set(
+                    c.requests
+                      .filter(
+                        (request) =>
+                          !!request.responded &&
+                          !!request.confirmed &&
+                          request.template !== "other",
+                      )
+                      .map((request) => request.id),
+                  );
+                  const responseMaterials = c.documents.filter(
+                    (document) =>
+                      !!document.requestId &&
+                      answeredAuthorityRequestIds.has(document.requestId) &&
+                      [
+                        "request-appendix",
+                        "authority-response-attachment",
+                        "response-attachment",
+                      ].includes(document.kind),
+                  );
+                  return responseMaterials.length ? (
+                    <section className="request-documents-section">
+                      <h4>Полученный ответ ДВГА/КВГА</h4>
+                      <div className="request-documents-list">
+                        {responseMaterials.map((document) => (
+                          <div
+                            className="request-document-row"
+                            key={`response-${document.requestId}-${document.name}`}
+                          >
+                            <span>{document.name}</span>
+                            <Button onClick={() => onDocument(document.kind, document)}>
+                              Просмотр
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null;
+                })()}
                 {c.requests.length > 0 && (
                   <>
                     {[
@@ -318,7 +358,17 @@ export default function CaseWorkspace({
                                 c.documents
                                   .filter(
                                     (document) =>
-                                      document.requestId === request.id,
+                                      document.requestId === request.id &&
+                                      !(
+                                        request.template !== "other" &&
+                                        !!request.responded &&
+                                        !!request.confirmed &&
+                                        [
+                                          "request-appendix",
+                                          "authority-response-attachment",
+                                          "response-attachment",
+                                        ].includes(document.kind)
+                                      ),
                                   )
                                   .map((document) => (
                                     <div
