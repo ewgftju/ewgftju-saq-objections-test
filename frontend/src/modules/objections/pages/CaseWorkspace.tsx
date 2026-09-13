@@ -290,38 +290,16 @@ export default function CaseWorkspace({
                 <h3 className="form-section">
                   Материалы и результаты рассмотрения
                 </h3>
-                {c.requests.map((request, index) => {
-                  const latest = index === c.requests.length - 1;
-                  const documents = c.documents.filter(
-                    (document) => document.requestId === request.id,
-                  );
-                  return (
-                    <section
-                      className="request-package"
-                      key={request.id}
-                    >
-                      <div className="request-package-head">
-                        <div>
-                          <strong>{request.recipient}</strong>
-                          <p>{request.text}</p>
-                          <small>
-                            Запрос: {formatDate(request.date)} ·{" "}
-                            {request.responded
-                              ? `Ответ получен: ${formatDate(request.responded)}`
-                              : `Ответ до: ${formatDateTime(request.deadline)}`}
-                          </small>
-                        </div>
-                        {latest && c.status === "request_approved" && (
-                          <span className="badge green">Запрос согласован</span>
-                        )}
-                        {latest && c.status === "request_approval" && (
-                          <span className="badge amber">На согласовании</span>
-                        )}
-                      </div>
-                      <div className="request-package-documents">
-                        <strong>Сформированные документы</strong>
-                        {documents.map((document) => (
-                          <div key={document.kind}>
+                {c.requests.length > 0 && (
+                  <div className="request-documents-list">
+                    {c.requests.flatMap((request) =>
+                      c.documents
+                        .filter((document) => document.requestId === request.id)
+                        .map((document) => (
+                          <div
+                            className="request-document-row"
+                            key={`${request.id}-${document.name}`}
+                          >
                             <span>{document.name}</span>
                             <Button
                               onClick={() =>
@@ -331,19 +309,10 @@ export default function CaseWorkspace({
                               Просмотр
                             </Button>
                           </div>
-                        ))}
-                      </div>
-                      {latest && c.status === "request_approval" && (
-                        <Button
-                          primary
-                          onClick={() => onAction("approve-request", "director")}
-                        >
-                          Согласовать документы
-                        </Button>
-                      )}
-                    </section>
-                  );
-                })}
+                        )),
+                    )}
+                  </div>
+                )}
                 {c.issues
                   .filter((point) => point.disputed)
                   .map((point) => (
