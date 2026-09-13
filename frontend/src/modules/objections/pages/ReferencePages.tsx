@@ -1,4 +1,5 @@
 import { Button, Notice, PageHeading } from "../../../components/ui";
+import { useState } from "react";
 import { STATUS } from "../../../data/constants";
 import { CONTROL_STEPS, STEPS } from "../../../data/workflowDefinitions";
 import type { ObjectionCase } from "../../../types";
@@ -223,6 +224,7 @@ export function SessionsPage({
   cases: ObjectionCase[];
   onOpen: (c: ObjectionCase) => void;
 }) {
+  const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
   const visible = cases.filter(
     (c) =>
       c.type !== "control" &&
@@ -231,11 +233,24 @@ export function SessionsPage({
           c.status,
         )),
   );
+  const allSelected =
+    visible.length > 0 && visible.every((item) => selectedCaseIds.includes(item.id));
+  const toggleCase = (caseId: string) =>
+    setSelectedCaseIds((selected) =>
+      selected.includes(caseId)
+        ? selected.filter((id) => id !== caseId)
+        : [...selected, caseId],
+    );
   return (
     <>
       <PageHeading
         title="Заседания комиссии"
         subtitle="Подготовка, голосование и подписанные протоколы"
+        action={
+          <Button primary disabled={!selectedCaseIds.length}>
+            Сформировать повестку дня
+          </Button>
+        }
       />
       <Notice>
         По Положению заседания проводятся по вторникам и четвергам; допускаются
@@ -247,7 +262,22 @@ export function SessionsPage({
           <table className="registry-table">
             <thead>
               <tr>
-                <th>Обращение</th>
+                <th>
+                  <label className="session-case-selector">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      disabled={!visible.length}
+                      aria-label="Выбрать все обращения"
+                      onChange={() =>
+                        setSelectedCaseIds(
+                          allSelected ? [] : visible.map((item) => item.id),
+                        )
+                      }
+                    />
+                    <span>Обращение</span>
+                  </label>
+                </th>
                 <th>Объект</th>
                 <th>Заседание</th>
                 <th>Протокол</th>
@@ -258,7 +288,17 @@ export function SessionsPage({
             <tbody>
               {visible.map((c) => (
                 <tr key={c.id}>
-                  <td>{c.id}</td>
+                  <td>
+                    <label className="session-case-selector">
+                      <input
+                        type="checkbox"
+                        checked={selectedCaseIds.includes(c.id)}
+                        onChange={() => toggleCase(c.id)}
+                        aria-label={`Выбрать обращение ${c.id}`}
+                      />
+                      <span>{c.id}</span>
+                    </label>
+                  </td>
                   <td>{c.org}</td>
                   <td>{formatDate(c.meeting?.date)}</td>
                   <td>{c.meeting?.number || "Готовится"}</td>
