@@ -751,7 +751,7 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
     createElement(CaseWorkspace, {
       c: h.c,
       tab: "review",
-      role: "commission",
+      role: "work",
       onBack() {},
       onTab() {},
       onAction() {},
