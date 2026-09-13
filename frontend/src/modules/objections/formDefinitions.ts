@@ -356,6 +356,7 @@ export function actionForm(
           ),
           readOnly: true,
         },
+        // Рекомендации относятся к протоколу и выводятся в печатной форме.
         area("recommendations", "Рекомендации"),
       );
       note =
