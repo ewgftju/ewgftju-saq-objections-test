@@ -223,7 +223,8 @@ export default function ObjectionsModule() {
                 action === "sign-certificate" ||
                 action === "send-certificate-to-commission" ||
                 action === "review-commission-documents" ||
-                action === "members"
+                action === "members" ||
+                action === "sign"
               ) {
                 const form = new FormData();
                 if (action === "screen") {
@@ -254,6 +255,18 @@ export default function ObjectionsModule() {
                 if (action === "members") {
                   form.set("meetingConducted", "on");
                 }
+                if (action === "sign") {
+                  form.set("secretary", "on");
+                  c.members
+                    .filter((member) => member.present)
+                    .forEach((member) =>
+                      form.set(`signed_${member.id}`, "on"),
+                    );
+                  form.set(
+                    "reason",
+                    "Результаты голосования членов АК зафиксированы в протоколе.",
+                  );
+                }
                 const next = applyAction(
                   model.state,
                   c.id,
@@ -277,6 +290,8 @@ export default function ObjectionsModule() {
                           ? "Члены АК ознакомились с документами"
                         : action === "members"
                           ? "Заседание по данному делу проведено"
+                        : action === "sign"
+                          ? "Протокол подписан"
                         : "Запрос направлен на согласование",
                 );
                 return;
