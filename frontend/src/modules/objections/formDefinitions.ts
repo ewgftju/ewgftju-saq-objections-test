@@ -176,7 +176,6 @@ export function actionForm(
           ...input("executor", "Исполнитель", DEMO_USER.fullName),
           readOnly: true,
         },
-        area("recommendations", "Рекомендации"),
       );
       note =
         "Будут сформированы два документа: запрос и приложение к нему. Реквизиты обращения подставятся в шаблон автоматически.";
@@ -357,6 +356,7 @@ export function actionForm(
           ),
           readOnly: true,
         },
+        area("recommendations", "Рекомендации"),
       );
       note =
         "Укажите реквизиты протокола и состав участников заседания. Печатная форма обновляется в реальном времени.";
