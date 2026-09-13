@@ -117,14 +117,22 @@ export default function ObjectionsModule() {
           }),
       ),
     );
+    const responseRequestIdBeforeAction =
+      action === "fill-request-response"
+        ? c.requests.find(
+            (request) => !request.responded && request.template !== "other",
+          )?.id
+        : action === "position"
+          ? c.requests.find(
+              (request) => request.responded && !request.confirmed,
+            )?.id ||
+            c.requests.find(
+              (request) => !request.responded && request.template === "other",
+            )?.id
+          : undefined;
     const next = applyAction(model.state, c.id, action, model.role, form);
     const updated = next.cases.find((item) => item.id === c.id)!;
-    const responseRequestId =
-      action === "fill-request-response"
-        ? updated.requests.find(
-            (request) => request.responded && !request.confirmed,
-          )?.id
-        : undefined;
+    const responseRequestId = responseRequestIdBeforeAction;
     if (attached.length) {
       updated.documents.push(
         ...attached.map(({ file, dataUrl }) => ({
