@@ -148,7 +148,7 @@ export interface CertificateMemberPosition {
 }
 
 export interface CaseCertificate {
-  authorityArguments: string;
+  davgaArguments: string;
   memberPositions: CertificateMemberPosition[];
 }
 
