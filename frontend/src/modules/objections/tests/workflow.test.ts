@@ -24,6 +24,7 @@ import CaseWorkspace from "../pages/CaseWorkspace";
 import ConsiderationProcess from "../components/ConsiderationProcess";
 import { caseCsv } from "../../../utils/download";
 import { pathForRoute, routeFromPath } from "../routing";
+import { DEMO_USER } from "../../../config";
 
 function harness(index = 0) {
   let state = initialState();
@@ -180,14 +181,12 @@ test("три исходных дела: разные сроки и перено�
   );
 });
 
-test("запрос получает срок два рабочих дня до 18:00 и допускает другого адресата", () => {
+test("запрос в другой орган использует отдельный шаблон и сохраняет исполнителя", () => {
   const h = harness();
   screen(h);
-  h.run("request", "work", {
-    recipient: "other",
-    recipientOther: "Экспертная организация",
+  h.run("request-other", "work", {
+    recipient: "Экспертная организация",
     customRequestText: "Просим представить экспертное заключение.",
-    deadline: "2026-12-31T09:00",
   });
   assert.deepEqual(h.c.requests.at(-1), {
     id: "request-1",
@@ -196,8 +195,24 @@ test("запрос получает срок два рабочих дня до 1
     text:
       "Запрос сформирован для Экспертная организация. Срок рассмотрения: 2026-09-10T18:00.",
     deadline: "2026-09-10T18:00",
+    template: "other",
+    author: DEMO_USER.fullName,
     customText: "Просим представить экспертное заключение.",
   });
+  assert.equal(
+    h.c.documents.some((document) => document.kind === "request-appendix"),
+    false,
+  );
+  const html = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "request",
+      document: h.c.documents[0],
+    }),
+  );
+  assert.match(html, /Экспертная организация/);
+  assert.match(html, /Просим представить экспертное заключение/);
+  assert.match(html, new RegExp(DEMO_USER.fullName));
 });
 
 test("уведомление: сквозной маршрут сохраняет неоспоренный пункт и снимки документов", () => {
@@ -526,6 +541,14 @@ test("дело открывает процесс, а одно действие �
   primaryAction(process())!();
   assert.deepEqual(selected, { action: "screen", role: "work" });
   screen(h);
+  assert.match(
+    renderToStaticMarkup(process()),
+    /Сформировать запрос в ДВГА\/КВГА/,
+  );
+  assert.match(
+    renderToStaticMarkup(process()),
+    /Сформировать запрос в другой орган/,
+  );
   h.run("request", "work", {
     recipient: "ДВГА по Атырауской области",
     deadline: "2026-09-10T18:00",
