@@ -26,6 +26,7 @@ import ConsiderationProcess from "../components/ConsiderationProcess";
 import { caseCsv } from "../../../utils/download";
 import { pathForRoute, routeFromPath } from "../routing";
 import { DEMO_USER } from "../../../config";
+import { actionForm } from "../formDefinitions";
 
 function harness(index = 0) {
   let state = initialState();
@@ -117,15 +118,11 @@ function prepare(h: Harness, partial = false) {
 }
 function voteAndSign(h: Harness) {
   const values: Record<string, string> = {
-    recusalDecision: "on",
     number: "ПР-1",
-    audio: "DEMO-AUDIO-1",
+    protocolDate: "2026-09-10",
+    protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
+    protocolMember_2: "Директор ДМБУА: ФИО",
   };
-  for (const member of h.c.members) {
-    values[`present_${member.id}`] = "on";
-    for (const point of h.c.issues.filter((point) => point.disputed))
-      values[`vote_${point.id}_${member.id}`] = "yes";
-  }
   h.run("vote", "commission", values);
   h.run("sign", "commission", {
     secretary: "on",
@@ -811,4 +808,29 @@ test("повестка дня подставляет реквизиты отме
     /ДВГА по Атырауской области от Нарушение, указанное ДВГА/,
   );
   assert.match(html, /\(Тестовый исполнитель\)/);
+});
+
+test("протокол формируется с выбранными участниками без полей голосования", () => {
+  const h = harness();
+  const definition = actionForm("vote", h.c, "2026-09-10", {});
+  assert.deepEqual(
+    definition.fields.map((field) => field.name),
+    ["number", "protocolDate"],
+  );
+  h.c.status = "meeting";
+  h.run("vote", "commission", {
+    number: "ПР-17",
+    protocolDate: "2026-09-10",
+    protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
+    protocolMember_2: "Эксперт ОЮЛ «АЗК»: ФИО",
+  });
+  assert.deepEqual(
+    h.c.members.map((member) => member.name),
+    [
+      "Председатель Апелляционной комиссии: ФИО",
+      "Эксперт ОЮЛ «АЗК»: ФИО",
+    ],
+  );
+  assert.equal(h.c.meeting?.audio, "");
+  assert.equal(h.c.votes, null);
 });
