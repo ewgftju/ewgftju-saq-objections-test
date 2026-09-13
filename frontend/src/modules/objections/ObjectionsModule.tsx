@@ -323,6 +323,22 @@ export default function ObjectionsModule() {
         <AgendaModal
           cases={dialog.cases}
           date={model.state.date}
+          onSend={(meetingDate) => {
+            const selectedIds = new Set(dialog.cases.map((item) => item.id));
+            const next = structuredClone(model.state);
+            next.cases
+              .filter((item) => selectedIds.has(item.id))
+              .forEach((item) =>
+                item.history.push({
+                  date: next.date,
+                  actor: ROLES[model.role],
+                  title: "Повестка дня направлена членам АК",
+                  text: `Дата заседания: ${meetingDate}`,
+                }),
+              );
+            model.commit(next, "Повестка дня направлена членам АК");
+            close();
+          }}
           onClose={close}
         />
       )}
