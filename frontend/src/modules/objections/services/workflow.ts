@@ -26,9 +26,27 @@ export const controlDecisions = [
   ["without", "Оставить жалобу без рассмотрения"],
 ] as const;
 
+function isDvgaOrKvgaRequest(recipient: string) {
+  const value = recipient.toUpperCase();
+  return value.includes("ДВГА") || value.includes("КВГА");
+}
+
+function pendingDvgaOrKvgaRequest(c: ObjectionCase) {
+  return c.requests.find(
+    (request) =>
+      !request.responded && isDvgaOrKvgaRequest(request.recipient),
+  );
+}
+
+function pendingOtherRequest(c: ObjectionCase) {
+  return c.requests.find(
+    (request) =>
+      !request.responded && !isDvgaOrKvgaRequest(request.recipient),
+  );
+}
+
 function directedToDvgaOrKvga(c: ObjectionCase) {
-  const recipient = c.requests.at(-1)?.recipient.toUpperCase() || "";
-  return recipient.includes("ДВГА") || recipient.includes("КВГА");
+  return c.requests.some((request) => isDvgaOrKvgaRequest(request.recipient));
 }
 
 export function nextAction(c: ObjectionCase): ActionOption | null {
@@ -55,17 +73,19 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Согласовать запрос",
       role: "director",
     },
-    request_approved: directedToDvgaOrKvga(c)
+    request_approved: pendingDvgaOrKvgaRequest(c)
       ? {
           action: "fill-request-response",
           label: "Заполнить ответ ДВГА/КВГА",
           role: "dvga",
         }
-      : {
+      : pendingOtherRequest(c)
+        ? {
           action: "position",
           label: "Ответ получен",
           role: "work",
-        },
+        }
+        : undefined,
     certificate_approval: {
       action: "approve-certificate",
       label: "Согласовать справку",
@@ -426,7 +446,8 @@ export function applyAction(
       break;
     }
     case "fill-request-response": {
-      if (!directedToDvgaOrKvga(c))
+      const request = pendingDvgaOrKvgaRequest(c);
+      if (!request)
         throw new Error("Это действие доступно только для запроса в ДВГА/КВГА");
       for (const point of disputed(c)) {
         point.authorityFinding = text(
@@ -438,7 +459,6 @@ export function applyAction(
           `Мотивированный ответ по пункту ${point.number}`,
         );
       }
-      const request = c.requests.at(-1)!;
       request.responded = date;
       c.documents
         .filter(
@@ -449,18 +469,27 @@ export function applyAction(
         .forEach((document) => {
           if (document.snapshot)
             document.snapshot.issues = structuredClone(c.issues);
-        });
+      });
       note = "Мотивированные ответы ДВГА/КВГА заполнены по всем оспариваемым пунктам.";
-      c.status = "materials";
+      c.status =
+        pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
+          ? "request_approved"
+          : "materials";
       doc("Мотивированный ответ ДВГА/КВГА", "authority-response", note);
       break;
     }
-    case "position":
+    case "position": {
       note = "Получен ответ на направленный запрос.";
-      if (c.requests.length) c.requests[c.requests.length - 1].responded = date;
-      c.status = "materials";
+      const request = pendingOtherRequest(c);
+      if (!request) throw new Error("Нет ожидающего ответа от другого органа");
+      request.responded = date;
+      c.status =
+        pendingDvgaOrKvgaRequest(c) || pendingOtherRequest(c)
+          ? "request_approved"
+          : "materials";
       doc("Полученные материалы по запросу", "position", note);
       break;
+    }
     case "analysis": {
       if (form.has("authorityArguments")) {
         const memberPositions = Array.from({ length: 20 }, (_, index) => {
