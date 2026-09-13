@@ -490,9 +490,26 @@ export function applyAction(
       break;
     }
     case "commission-vote": {
+      c.votes = {};
+      for (const point of disputed(c)) {
+        const vote = text(`commissionVote_${point.id}`, `Голос по пункту ${point.number}`);
+        if (vote !== "yes" && vote !== "no")
+          throw new Error("Выберите «За» или «Против» по каждому пункту");
+        c.votes[point.id] = {
+          yes: vote === "yes" ? 1 : 0,
+          no: vote === "no" ? 1 : 0,
+          approved: vote === "yes",
+          chair: "commission",
+          present: 1,
+          eligible: 1,
+          votes: { commission: vote },
+        };
+        point.proposal = vote === "yes" ? "accept" : "reject";
+        point.final = point.proposal;
+      }
       c.status = "circulated";
       title = "Голосование членов АК завершено";
-      note = "Голосование членов апелляционной комиссии завершено. Обращение готово к проведению заседания.";
+      note = "Голосование членов апелляционной комиссии по оспариваемым пунктам завершено. Обращение готово к проведению заседания.";
       doc("Голосование членов АК", "commission-vote", note);
       break;
     }
