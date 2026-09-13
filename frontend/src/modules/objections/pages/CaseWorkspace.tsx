@@ -19,6 +19,8 @@ import {
   reviewDeadline,
 } from "../services/deadlines";
 import ConsiderationProcess from "../components/ConsiderationProcess";
+import { wordDocumentHtml } from "../components/DocumentModal";
+import { downloadFile } from "../../../utils/download";
 
 function Fact({
   label,
@@ -290,6 +292,45 @@ export default function CaseWorkspace({
                 <h3 className="form-section">
                   Материалы и результаты рассмотрения
                 </h3>
+                {(() => {
+                  const certificate = c.documents.find(
+                    (document) => document.kind === "certificate",
+                  );
+                  return certificate ? (
+                    <section className="request-documents-section">
+                      <h4>Справка</h4>
+                      <div className="request-documents-list">
+                        <div className="request-document-row">
+                          <span>{certificate.name}</span>
+                          <div className="request-document-actions">
+                            <Button
+                              onClick={() =>
+                                onDocument(certificate.kind, certificate)
+                              }
+                            >
+                              Просмотр
+                            </Button>
+                            <Button
+                              onClick={() =>
+                                downloadFile(
+                                  `${c.id}-справка.doc`,
+                                  wordDocumentHtml({
+                                    c,
+                                    kind: certificate.kind,
+                                    document: certificate,
+                                  }),
+                                  "application/msword",
+                                )
+                              }
+                            >
+                              Скачать Word
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  ) : null;
+                })()}
                 {(() => {
                   const answeredAuthorityRequestIds = new Set(
                     c.requests
