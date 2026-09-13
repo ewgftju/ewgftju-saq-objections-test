@@ -1,5 +1,6 @@
 import { preparedActionValues } from "./demoForm";
 import type { Action, ObjectionCase } from "../../types";
+import { DEMO_USER } from "../../config";
 import { OUTCOMES } from "../../data/constants";
 import { addWorkdays, filingDeadline } from "./services/deadlines";
 import { disputed } from "./services/decisions";
@@ -97,7 +98,6 @@ const REQUEST_RECIPIENT_OPTIONS = [
   ["ДВГА по г. Астана", "ДВГА по г. Астана"],
   ["ДВГА по области Ұлытау", "ДВГА по области Ұлытау"],
   ["ДВГА по области Абай", "ДВГА по области Абай"],
-  ["other", "Другое"],
 ] as const satisfies FormField["options"];
 
 export function actionForm(
@@ -107,7 +107,8 @@ export function actionForm(
   values: FormValues,
 ): FormDefinition {
   const day = input("date", "Дата действия", date, "date");
-  let fields: FormField[] = action === "request" ? [] : [day];
+  let fields: FormField[] =
+    action === "request" || action === "request-other" ? [] : [day];
   let title = "Действие по обращению";
   let note = "";
   switch (action) {
@@ -150,7 +151,7 @@ export function actionForm(
           : "Статьи 58-2 и 58-3: срок, способ подачи и полномочия. Отказ в рассмотрении оформляется комиссией отдельным действием.";
       break;
     case "request":
-      title = "Сформировать запрос";
+      title = "Сформировать запрос в ДВГА/КВГА";
       const deadline = input(
         "deadline",
         "Срок рассмотрения",
@@ -165,9 +166,22 @@ export function actionForm(
           REQUEST_RECIPIENT_OPTIONS,
         ),
         deadline,
+        {
+          ...input("executor", "Исполнитель", DEMO_USER.fullName),
+          readOnly: true,
+        },
       );
       note =
         "Будут сформированы два документа: запрос и приложение к нему. Реквизиты обращения подставятся в шаблон автоматически.";
+      break;
+    case "request-other":
+      title = "Сформировать запрос в другой орган";
+      fields.push(
+        input("recipient", "Кому направить запрос"),
+        area("customRequestText", "Текст запроса"),
+      );
+      note =
+        "Печатная форма формируется по шаблону запроса в другой орган. Адресат и текст подставляются в неё автоматически.";
       break;
     case "send-request-approval":
       title = "Отправить запрос на согласование";
