@@ -123,6 +123,10 @@ function voteAndSign(h: Harness) {
     protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
     protocolMember_2: "Директор ДМБУА: ФИО",
   };
+  for (const point of h.c.issues.filter((item) => item.disputed)) {
+    values[`protocolVote_${point.id}_protocol-member-1`] = "yes";
+    values[`protocolVote_${point.id}_protocol-member-2`] = "yes";
+  }
   h.run("vote", "commission", values);
   h.run("sign", "commission", {
     secretary: "on",
@@ -834,6 +838,14 @@ test("протокол формируется с выбранными участ
     protocolDate: "2026-09-10",
     protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
     protocolMember_2: "Эксперт ОЮЛ «АЗК»: ФИО",
+    ...Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .flatMap((point) => [
+          [`protocolVote_${point.id}_protocol-member-1`, "yes"],
+          [`protocolVote_${point.id}_protocol-member-2`, "no"],
+        ]),
+    ),
   });
   assert.deepEqual(
     h.c.members.map((member) => member.name),
@@ -843,7 +855,7 @@ test("протокол формируется с выбранными участ
     ],
   );
   assert.equal(h.c.meeting?.audio, "");
-  assert.equal(h.c.votes, null);
+  assert.equal(h.c.votes?.[h.c.issues.find((point) => point.disputed)!.id]?.yes, 1);
   const protocolHtml = renderToStaticMarkup(
     createElement(DocumentContent, {
       c: h.c,
