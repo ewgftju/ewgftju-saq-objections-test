@@ -722,6 +722,11 @@
   justify-self: end;
   white-space: nowrap;
 }
+.request-document-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
 .consideration-task-action .button + .button {
   margin-top: 8px;
 }
@@ -732,6 +737,12 @@
   }
   .request-document-row .button {
     justify-self: stretch;
+  }
+  .request-document-actions {
+    justify-content: stretch;
+  }
+  .request-document-actions .button {
+    flex: 1;
   }
 }
 .response-receipt-grid {
