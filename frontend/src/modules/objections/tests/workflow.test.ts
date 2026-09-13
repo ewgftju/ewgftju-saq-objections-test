@@ -740,6 +740,9 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   );
   assert.match(certificateApprovalHtml, /Заместитель директора ДАВГА/);
   h.run("approve-certificate", "director");
+  assert.equal(h.c.status, "certificate_signed");
+  assert.equal(nextAction(h.c)?.action, "sign-certificate");
+  h.run("sign-certificate", "work");
   assert.equal(h.c.status, "certificate_approved");
   h.run("send-certificate-to-commission", "work");
   assert.equal(h.c.status, "circulated");
