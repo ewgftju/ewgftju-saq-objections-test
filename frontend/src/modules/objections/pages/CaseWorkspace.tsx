@@ -291,27 +291,56 @@ export default function CaseWorkspace({
                   Материалы и результаты рассмотрения
                 </h3>
                 {c.requests.length > 0 && (
-                  <div className="request-documents-list">
-                    {c.requests.flatMap((request) =>
-                      c.documents
-                        .filter((document) => document.requestId === request.id)
-                        .map((document) => (
-                          <div
-                            className="request-document-row"
-                            key={`${request.id}-${document.name}`}
+                  <>
+                    {[
+                      {
+                        title: "Запрос в ДВГА",
+                        requests: c.requests.filter(
+                          (request) => request.template !== "other",
+                        ),
+                      },
+                      {
+                        title: "Запрос в другие органы",
+                        requests: c.requests.filter(
+                          (request) => request.template === "other",
+                        ),
+                      },
+                    ].map(
+                      (group) =>
+                        group.requests.length > 0 && (
+                          <section
+                            className="request-documents-section"
+                            key={group.title}
                           >
-                            <span>{document.name}</span>
-                            <Button
-                              onClick={() =>
-                                onDocument(document.kind, document)
-                              }
-                            >
-                              Просмотр
-                            </Button>
-                          </div>
-                        )),
+                            <h4>{group.title}</h4>
+                            <div className="request-documents-list">
+                              {group.requests.flatMap((request) =>
+                                c.documents
+                                  .filter(
+                                    (document) =>
+                                      document.requestId === request.id,
+                                  )
+                                  .map((document) => (
+                                    <div
+                                      className="request-document-row"
+                                      key={`${request.id}-${document.name}`}
+                                    >
+                                      <span>{document.name}</span>
+                                      <Button
+                                        onClick={() =>
+                                          onDocument(document.kind, document)
+                                        }
+                                      >
+                                        Просмотр
+                                      </Button>
+                                    </div>
+                                  )),
+                              )}
+                            </div>
+                          </section>
+                        ),
                     )}
-                  </div>
+                  </>
                 )}
                 {c.issues
                   .filter((point) => point.disputed)
