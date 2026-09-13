@@ -162,6 +162,69 @@ function ProtocolParticipantsFields({
   );
 }
 
+
+function ProtocolVotesFields({
+  c,
+  members,
+  values,
+}: {
+  c: ObjectionCase;
+  members: Array<{ id: string; name: string }>;
+  values: FormValues;
+}) {
+  if (!members.length)
+    return (
+      <Notice>
+        Выберите участников заседания — после этого появятся поля для
+        фиксации их голосов.
+      </Notice>
+    );
+
+  return (
+    <>
+      <h3 className="form-section">Голоса членов АК по каждому пункту</h3>
+      <div className="table-scroll">
+        <table className="data-table protocol-vote-entry-table">
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>Описание оспариваемого пункта</th>
+              {members.map((member) => (
+                <th key={member.id}>{member.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {disputed(c).map((point) => (
+              <tr key={point.id}>
+                <td>{point.number}</td>
+                <td>{point.title}</td>
+                {members.map((member) => {
+                  const name = `protocolVote_${point.id}_${member.id}`;
+                  return (
+                    <td key={member.id}>
+                      <select
+                        name={name}
+                        defaultValue={values[name] || ""}
+                        required
+                        aria-label={`Голос ${member.name} по пункту ${point.number}`}
+                      >
+                        <option value="">Выберите голос</option>
+                        <option value="yes">За</option>
+                        <option value="no">Против</option>
+                      </select>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 export default function ActionModal({
   action,
   c,
@@ -199,10 +262,10 @@ export default function ActionModal({
   const customRequestText =
     isOtherRequest ? values.customRequestText ?? "" : undefined;
   const protocolMembers = protocolMemberRows
-    .map((row) => values[`protocolMember_${row}`])
-    .filter(Boolean)
-    .map((name, index) => ({
-      id: `protocol-member-${index + 1}`,
+    .map((row) => ({ row, name: values[`protocolMember_${row}`] }))
+    .filter((member): member is { row: number; name: string } => Boolean(member.name))
+    .map(({ row, name }) => ({
+      id: `protocol-member-${row}`,
       name,
       present: true,
       recused: false,
@@ -557,6 +620,11 @@ export default function ActionModal({
                   )
                 }
               />
+              <ProtocolVotesFields
+                c={c}
+                members={protocolMembers}
+                values={values}
+              />
             </div>
             <div hidden={requestTab !== "print"} className="request-print-preview">
               <DocumentContent
@@ -567,7 +635,17 @@ export default function ActionModal({
                   number: values.number || `ПР-${c.id}`,
                   audio: "",
                   members: protocolMembers,
-                  votes: {},
+                  votes: Object.fromEntries(
+                    disputed(c).map((point) => [
+                      point.id,
+                      Object.fromEntries(
+                        protocolMembers.map((member) => [
+                          member.id,
+                          values[`protocolVote_${point.id}_${member.id}`] || "",
+                        ]),
+                      ),
+                    ]),
+                  ),
                 }}
               />
             </div>
