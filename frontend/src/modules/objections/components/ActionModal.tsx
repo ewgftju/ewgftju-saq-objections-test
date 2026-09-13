@@ -5,6 +5,7 @@ import { actionForm } from "../formDefinitions";
 import type { FormField, FormValues } from "../formDefinitions";
 import { disputed } from "../services/decisions";
 import { DocumentContent } from "./DocumentModal";
+import { DEMO_USER } from "../../../config";
 
 const COMMISSION_MEMBER_OPTIONS = [
   "ФИО 1",
@@ -181,6 +182,8 @@ export default function ActionModal({
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
   const [certificateMembers, setCertificateMembers] = useState([1]);
   const definition = actionForm(action, c, date, values);
+  const isRequest = action === "request" || action === "request-other";
+  const isOtherRequest = action === "request-other";
   const requestDeadline =
     values.deadline ||
     definition.fields.find((field) => field.name === "deadline")?.value ||
@@ -189,12 +192,12 @@ export default function ActionModal({
     values.recipient ??
     definition.fields.find((field) => field.name === "recipient")?.value ??
     "";
-  const requestRecipientForPreview =
-    requestRecipient === "other"
-      ? values.recipientOther || ""
-      : requestRecipient;
+  const requestExecutor =
+    values.executor ||
+    definition.fields.find((field) => field.name === "executor")?.value ||
+    DEMO_USER.fullName;
   const customRequestText =
-    requestRecipient === "other" ? values.customRequestText ?? "" : undefined;
+    isOtherRequest ? values.customRequestText ?? "" : undefined;
   const protocolMembers = c.members.map((member) => ({
     ...member,
     present:
@@ -224,7 +227,7 @@ export default function ActionModal({
       onClose={onClose}
       wide={
         action === "vote" ||
-        action === "request" ||
+        isRequest ||
         action === "fill-request-response" ||
         action === "analysis"
       }
@@ -262,16 +265,20 @@ export default function ActionModal({
           }
         }}
       >
-        {action === "request" ? (
+        {isRequest ? (
           <>
             <div className="request-modal-details">
               <div>
-                <span>Автор</span>
-                <b>Исполнитель</b>
+                <span>Исполнитель</span>
+                <b>{requestExecutor}</b>
               </div>
               <div>
                 <span>Печатная форма</span>
-                <b>Формируется по шаблону</b>
+                <b>
+                  {isOtherRequest
+                    ? "Формируется по шаблону запроса в другой орган"
+                    : "Формируется по шаблону"}
+                </b>
               </div>
             </div>
             {definition.note && <Notice>{definition.note}</Notice>}
@@ -292,40 +299,20 @@ export default function ActionModal({
               </button>
             </div>
             <div hidden={requestTab !== "form"} className="form-grid">
-              {definition.fields.map((field) =>
-                field.name === "recipient" ? (
-                  <div key={field.name}>
-                    <Field field={field} />
-                    {requestRecipient === "other" && (
-                      <>
-                        <label className="field">
-                          <span>Укажите адресата</span>
-                          <input name="recipientOther" required />
-                        </label>
-                        <label className="field">
-                          <span>Текст запроса</span>
-                          <textarea
-                            name="customRequestText"
-                            rows={8}
-                            required
-                          />
-                        </label>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <Field key={field.name} field={field} />
-                ),
-              )}
+              {definition.fields.map((field) => (
+                <Field key={field.name} field={field} />
+              ))}
             </div>
             <div hidden={requestTab !== "print"} className="request-print-preview">
               <DocumentContent
                 c={c}
                 kind="request"
                 requestPreview={{
-                  recipient: requestRecipientForPreview,
+                  recipient: requestRecipient,
                   deadline: requestDeadline,
                   customText: customRequestText,
+                  template: isOtherRequest ? "other" : "dvga",
+                  author: requestExecutor,
                 }}
               />
             </div>
