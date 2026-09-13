@@ -210,6 +210,7 @@ export default function ObjectionsModule() {
                 action === "send-request-approval" ||
                 action === "approve-request" ||
                 action === "approve-certificate" ||
+                action === "sign-certificate" ||
                 action === "send-certificate-to-commission" ||
                 action === "members"
               ) {
@@ -257,6 +258,8 @@ export default function ObjectionsModule() {
                     ? "Запрос согласован"
                     : action === "approve-certificate"
                       ? "Справка согласована"
+                      : action === "sign-certificate"
+                        ? "Справка подписана"
                       : action === "send-certificate-to-commission"
                         ? "Справка и документы направлены членам АК"
                         : action === "members"
