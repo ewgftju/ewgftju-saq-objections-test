@@ -149,12 +149,19 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
     !CLOSED.includes(c.status) &&
     !["protocol", "decided", "delivered", "court"].includes(c.status);
   if (active) {
-    if (c.status === "accepted")
+    if (c.status === "accepted") {
       options.push({
         action: "request-other",
         label: "Сформировать запрос в другой орган",
         role: "work",
       });
+      if (c.requests.length)
+        options.push({
+          action: "send-request-approval",
+          label: "Направить на согласование",
+          role: "work",
+        });
+    }
     if (c.type === "control" && c.status === "accepted")
       options.push({
         action: "forward",
@@ -373,7 +380,6 @@ export function applyAction(
           : String(form.get("executor") || DEMO_USER.fullName),
         customText,
       });
-      c.status = "requested";
       doc(`Запрос в ${recipient}`, "request", note, requestId);
       if (!otherOrgan)
         doc(
@@ -388,8 +394,8 @@ export function applyAction(
       if (!c.requests.length)
         throw new Error("Сначала сформируйте запрос и приложение к нему");
       c.status = "request_approval";
-      title = "Запрос и приложение направлены на согласование";
-      note = "Сформированные документы направлены директору ДАВГА.";
+      title = "Сформированные запросы направлены на согласование";
+      note = "Все сформированные запросы и приложения направлены директору ДАВГА.";
       break;
     }
     case "approve-request": {
