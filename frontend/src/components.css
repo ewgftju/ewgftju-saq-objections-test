@@ -837,21 +837,27 @@
 .response-receipt-materials a {
   overflow-wrap: anywhere;
 }
-.response-receipt-appendix .appendix-template {
-  min-height: auto;
-  padding: 0;
-  font-size: 10px;
+.response-appendix-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: #f7fbfd;
+  font-size: 13px;
 }
-.response-receipt-appendix .appendix-template-number {
-  margin: 0 0 6px !important;
-  font-size: 11px !important;
+.response-appendix-actions > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.response-receipt-appendix .appendix-template table {
-  font-size: 9px;
+.response-appendix-actions > div {
+  display: flex;
+  gap: 6px;
 }
-.response-receipt-appendix .appendix-template th,
-.response-receipt-appendix .appendix-template td {
-  padding: 4px;
+.response-appendix-actions .button {
+  white-space: nowrap;
 }
 @media (max-width: 700px) {
   .response-receipt-grid,
