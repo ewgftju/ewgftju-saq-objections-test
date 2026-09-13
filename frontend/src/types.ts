@@ -12,6 +12,7 @@ export type CaseStatus =
   | "requested"
   | "request_approval"
   | "request_approved"
+  | "response_ready"
   | "materials"
   | "certificate_approval"
   | "certificate_approved"
@@ -137,6 +138,7 @@ export interface CaseRequest {
   author?: string;
   customText?: string;
   responded?: string;
+  confirmed?: string;
 }
 
 export interface CertificateMemberPosition {
