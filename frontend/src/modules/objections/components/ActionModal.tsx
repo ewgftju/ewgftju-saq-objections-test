@@ -670,6 +670,7 @@ export default function ActionModal({
                   date: values.protocolDate || date,
                   number: values.number || `ПР-${c.id}`,
                   audio: "",
+                  recommendations: values.recommendations || "—",
                   members: protocolMembers,
                   votes: Object.fromEntries(
                     disputed(c).map((point) => [

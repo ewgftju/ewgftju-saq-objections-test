@@ -176,6 +176,7 @@ export function actionForm(
           ...input("executor", "Исполнитель", DEMO_USER.fullName),
           readOnly: true,
         },
+        area("recommendations", "Рекомендации"),
       );
       note =
         "Будут сформированы два документа: запрос и приложение к нему. Реквизиты обращения подставятся в шаблон автоматически.";

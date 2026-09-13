@@ -41,6 +41,7 @@ export function DocumentContent({
     date: string;
     number: string;
     audio: string;
+    recommendations?: string;
     members: CommissionMember[];
     votes: Record<string, Record<string, string>>;
   };
@@ -270,6 +271,14 @@ export function DocumentContent({
     const members = protocolPreview?.members || snapshot.members;
     const presentMembers = members.filter((member) => member.present);
     const votes = protocolPreview?.votes || snapshot.votes;
+    const outcome = snapshot.issues
+      .filter((point) => point.disputed)
+      .map((point) => point.final || point.proposal);
+    const decision = outcome.length && outcome.every((item) => item === "reject")
+      ? "отказать"
+      : outcome.length && outcome.every((item) => item === "accept")
+        ? "удовлетворить"
+        : "удовлетворить частично";
     return (
       <article className="print-document protocol-template">
         <h1>
@@ -344,15 +353,16 @@ export function DocumentContent({
           </tbody>
         </table>
         <p className="protocol-template-result">
-          На основании результатов голосования членов Апелляционной комиссии принято решение по возражению.
+          На основании результатов голосования членов Апелляционной комиссии принято РЕШЕНИЕ {decision} {snapshot.appealType} {snapshot.org} от {formatDate(snapshot.appealDate || snapshot.filed)} года №{snapshot.appealNumber || snapshot.document.number}.
+        </p>
+        <p className="protocol-template-recommendations">
+          Рекомендации: {meeting?.recommendations || "—"}
         </p>
         <div className="protocol-template-signatures">
-          <p>Заместитель Председателя Апелляционной комиссии: __________________ ФИО</p>
           {presentMembers.map((member) => (
             <p key={member.id}>Член Апелляционной комиссии: __________________ {member.name}</p>
           ))}
           <p>Секретарь Апелляционной комиссии: __________________ ФИО</p>
-          <p className="muted">Аудиозапись: {meeting?.audio || "—"}</p>
         </div>
       </article>
     );

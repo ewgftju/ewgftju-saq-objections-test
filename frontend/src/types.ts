@@ -97,6 +97,7 @@ export interface Meeting {
   date: string;
   number: string;
   audio: string;
+  recommendations?: string;
   signed?: string;
 }
 

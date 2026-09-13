@@ -824,6 +824,8 @@ export function applyAction(
         date: protocolDate,
         number: text("number", "Номер протокола"),
         audio: "",
+        recommendations:
+          String(form.get("recommendations") || "").trim() || "—",
       };
       c.status = "protocol";
       doc(
