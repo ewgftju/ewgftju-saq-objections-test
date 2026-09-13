@@ -4,6 +4,7 @@ export const STEPS = [
   ["requested", "Позиция ДВГА"],
   ["materials", "Справка по доводам"],
   ["circulated", "Позиции членов комиссии"],
+  ["commission_voting", "Голосование членов АК"],
   ["hearing", "Заслушивание"],
   ["meeting", "Заседание и голосование"],
   ["protocol", "Протокол и решение"],
