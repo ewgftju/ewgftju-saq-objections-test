@@ -697,11 +697,18 @@
 .request-documents-list {
   display: grid;
   gap: 8px;
-  margin: 12px 0 18px;
+  margin: 8px 0 18px;
+}
+.request-documents-section {
+  margin: 14px 0 18px;
+}
+.request-documents-section h4 {
+  margin: 0;
+  font-size: 14px;
 }
 .request-document-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
   padding: 9px 12px;
@@ -711,10 +718,24 @@
   background: #f7fbfd;
   font-size: 14px;
 }
+.request-document-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.request-document-row .button {
+  justify-self: end;
+  white-space: nowrap;
+}
+.consideration-task-action .button + .button {
+  margin-top: 8px;
+}
 @media (max-width: 600px) {
   .request-document-row {
     align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+  .request-document-row .button {
+    justify-self: stretch;
   }
 }
 .response-receipt-grid {
