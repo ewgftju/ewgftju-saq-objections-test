@@ -209,7 +209,7 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
         label: "Сформировать запрос в другой орган",
         role: "work",
       });
-      if (c.requests.length)
+      if (directedToDvgaOrKvga(c))
         options.push({
           action: "send-request-approval",
           label: "Направить на согласование",
@@ -445,8 +445,10 @@ export function applyAction(
       break;
     }
     case "send-request-approval": {
-      if (!c.requests.length)
-        throw new Error("Сначала сформируйте запрос и приложение к нему");
+      if (!directedToDvgaOrKvga(c))
+        throw new Error(
+          "Сначала сформируйте обязательный запрос в ДВГА/КВГА и приложение к нему",
+        );
       c.status = "request_approval";
       title = "Сформированные запросы направлены на согласование";
       note = "Все сформированные запросы и приложения направлены директору ДАВГА.";

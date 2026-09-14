@@ -215,7 +215,13 @@ export default function ConsiderationProcess({
             {c.status === "accepted" && (
               <Button
                 primary
-                disabled={!c.requests.length}
+                disabled={
+                  !c.requests.some(
+                    (request) =>
+                      request.template === "dvga" ||
+                      /ДВГА|КВГА/i.test(request.recipient),
+                  )
+                }
                 onClick={() => onAction("send-request-approval", "work")}
               >
                 Направить на согласование
@@ -226,7 +232,7 @@ export default function ConsiderationProcess({
             )}
             <small>
               {c.status === "accepted"
-                ? "Сначала сформируйте нужные документы, затем направьте их на согласование."
+                ? "Сначала сформируйте обязательный запрос в ДВГА/КВГА, затем при необходимости добавьте запрос в другой орган и направьте документы на согласование."
                 : "Заполните форму и сохраните действие — откроется следующая задача."}
             </small>
           </div>

@@ -217,6 +217,10 @@ test("запрос в другой орган использует отдель�
   assert.match(html, /Экспертная организация/);
   assert.match(html, /Просим представить экспертное заключение/);
   assert.match(html, new RegExp(DEMO_USER.fullName));
+  assert.throws(
+    () => h.run("send-request-approval", "work"),
+    /недоступно/,
+  );
 });
 
 test("ответ ДВГА доступен после согласования, даже если создан запрос в другой орган", () => {
