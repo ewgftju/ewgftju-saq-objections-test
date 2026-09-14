@@ -17,7 +17,7 @@ import {
   reviewDeadline,
   reviewDuration,
 } from "../services/deadlines";
-import { evaluateVotes, remainingIssues } from "../services/decisions";
+import { evaluateVotes, overall, remainingIssues } from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
 import { AgendaDocument } from "../components/AgendaModal";
 import CasesList from "../pages/CasesList";
@@ -923,5 +923,45 @@ test("протокол формируется с выбранными участ
   assert.doesNotMatch(
     protocolHtml,
     /Заместитель Председателя Апелляционной комиссии: Директор ДАВГА/,
+  );
+  assert.match(protocolHtml, /РЕШЕНИЕ удовлетворить /);
+
+  const disputedPoints = h.c.issues.filter((point) => point.disputed);
+  disputedPoints[0].final = "reject";
+  assert.equal(overall(h.c), "partial");
+  const partialProtocolHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "protocol",
+      protocolPreview: {
+        date: "2026-09-10",
+        number: "ПР-17",
+        audio: "",
+        members: h.c.members,
+        votes: {},
+      },
+    }),
+  );
+  assert.match(partialProtocolHtml, /РЕШЕНИЕ удовлетворить частично /);
+  disputedPoints.forEach((point) => {
+    point.final = "reject";
+  });
+  assert.equal(overall(h.c), "reject");
+  const rejectedProtocolHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "protocol",
+      protocolPreview: {
+        date: "2026-09-10",
+        number: "ПР-17",
+        audio: "",
+        members: h.c.members,
+        votes: {},
+      },
+    }),
+  );
+  assert.match(
+    rejectedProtocolHtml,
+    /РЕШЕНИЕ об отказе в удовлетворении /,
   );
 });

@@ -16,6 +16,7 @@ import {
 } from "../../../utils/dateFormat";
 import { downloadFile } from "../../../utils/download";
 import { DEMO_USER } from "../../../config";
+import { overall } from "../services/decisions";
 
 export function DocumentContent({
   c,
@@ -272,14 +273,15 @@ export function DocumentContent({
     const members = protocolPreview?.members || snapshot.members;
     const presentMembers = members.filter((member) => member.present);
     const votes = protocolPreview?.votes || snapshot.votes;
-    const outcome = snapshot.issues
-      .filter((point) => point.disputed)
-      .map((point) => point.final || point.proposal);
-    const decision = outcome.length && outcome.every((item) => item === "reject")
-      ? "отказать"
-      : outcome.length && outcome.every((item) => item === "accept")
+    const overallResult = overall(snapshot);
+    const decision =
+      overallResult === "accept"
         ? "удовлетворить"
-        : "удовлетворить частично";
+        : overallResult === "reject"
+          ? "об отказе в удовлетворении"
+          : overallResult === "partial"
+            ? "удовлетворить частично"
+            : "—";
     return (
       <article className="print-document protocol-template">
         <h1>
