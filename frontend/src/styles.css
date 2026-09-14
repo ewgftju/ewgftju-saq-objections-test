@@ -348,6 +348,19 @@ small,
   border-bottom-color: var(--blue);
   color: var(--blue);
 }
+.session-tab-badge {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 7px;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #d64545;
+  font-size: 12px;
+  line-height: 1;
+}
 .agenda-registry-table td {
   vertical-align: top;
 }

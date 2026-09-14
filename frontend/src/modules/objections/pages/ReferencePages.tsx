@@ -242,6 +242,7 @@ export function SessionsPage({
 }) {
   const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
   const [section, setSection] = useState<"sessions" | "agendas">("sessions");
+  const pendingAgendaResults = agendas.filter((agenda) => !agenda.resultsHtml).length;
   const visible = cases.filter(
     (c) =>
       c.type !== "control" &&
@@ -295,6 +296,14 @@ export function SessionsPage({
           onClick={() => setSection("agendas")}
         >
           Реестр повесток
+          {pendingAgendaResults > 0 && (
+            <span
+              className="session-tab-badge"
+              aria-label={`Требуется сформировать итогов: ${pendingAgendaResults}`}
+            >
+              {pendingAgendaResults}
+            </span>
+          )}
         </button>
       </div>
       {section === "sessions" ? (
