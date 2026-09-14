@@ -65,8 +65,7 @@ function directedToDvgaOrKvga(c: ObjectionCase) {
 }
 
 export function nextAction(c: ObjectionCase): ActionOption | null {
-  const control = c.type === "control";
-  const reviewer: Role = control ? "higher" : "work";
+  const reviewer: Role = "work";
   const map: Partial<Record<ObjectionCase["status"], ActionOption>> = {
     received: {
       action: "screen",
@@ -137,14 +136,14 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       role: "commission",
     },
     materials: {
-      action: control ? "control-analysis" : "analysis",
-      label: control ? "Изучить административное дело" : "Сформировать справку",
+      action: "analysis",
+      label: "Сформировать справку",
       role: reviewer,
     },
     forwarded: {
-      action: "control-analysis",
-      label: "Изучить административное дело",
-      role: "higher",
+      action: "analysis",
+      label: "Сформировать справку",
+      role: reviewer,
     },
     circulated: {
       action: "members",
@@ -192,12 +191,6 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       role: "work",
     },
   };
-  if (control && c.status === "meeting")
-    return {
-      action: "control-decision",
-      label: "Принять решение по жалобе",
-      role: "higher",
-    };
   return map[c.status] || null;
 }
 
@@ -222,46 +215,38 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
           role: "work",
         });
     }
-    if (c.type === "control" && c.status === "accepted")
-      options.push({
-        action: "forward",
-        label: "Передать жалобу по компетенции",
-        role: "dvga",
-      });
     if (c.status === "requested")
       options.push({
         action: "request",
         label: "Сформировать ещё один запрос",
         role: "work",
       });
-    if (c.type !== "control") {
+    options.push({
+      action: "supplement",
+      label: "Дополнение к возражению",
+      role: "work",
+    });
+    if (c.status !== "paused")
       options.push({
-        action: "supplement",
-        label: "Дополнение к возражению",
+        action: "pause",
+        label: "Внешний запрос / приостановление",
         role: "work",
       });
-      if (c.status !== "paused")
-        options.push({
-          action: "pause",
-          label: "Внешний запрос / приостановление",
-          role: "work",
-        });
+    options.push({
+      action: "refuse",
+      label: "Отказ в рассмотрении",
+      role: "commission",
+    });
+    if (c.status === "commission_voting")
       options.push({
-        action: "refuse",
-        label: "Отказ в рассмотрении",
-        role: "commission",
+        action: "vote",
+        label: "Сформировать протокол заседания",
+        role: "work",
       });
-      if (c.status === "commission_voting")
-        options.push({
-          action: "vote",
-          label: "Сформировать протокол заседания",
-          role: "work",
-        });
-    }
     options.push({
       action: "withdraw",
       label: "Оставить без рассмотрения",
-      role: c.type === "control" ? "higher" : "work",
+      role: "work",
     });
     if (
       ["circulated", "hearing", "hearing_ready", "meeting"].includes(c.status)
@@ -269,9 +254,9 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
       options.push({
         action: "return-analysis",
         label: "Вернуть на анализ",
-        role: c.type === "control" ? "higher" : "work",
+        role: "work",
       });
-    if (c.status === "meeting" && c.type !== "control")
+    if (c.status === "meeting")
       options.push({
         action: "postpone",
         label: "Перенести заседание",

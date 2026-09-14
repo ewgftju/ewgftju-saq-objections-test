@@ -20,6 +20,7 @@ const OBJECTION_STAGES: ProcessStage[] = [
     description: "Подготовка и направление запросов, получение ответов",
     statuses: [
       "accepted",
+      "forwarded",
       "requested",
       "request_approval",
       "request_approved",
@@ -41,38 +42,6 @@ const OBJECTION_STAGES: ProcessStage[] = [
     description: "Голоса и протокол",
     statuses: ["hearing", "hearing_ready", "meeting", "protocol"],
   },
-  {
-    label: "Исполнение",
-    description: "Направление результата и исполнение",
-    statuses: ["decided", "delivered", "completed"],
-  },
-];
-
-const CONTROL_STAGES: ProcessStage[] = [
-  {
-    label: "Приём",
-    description: "Допустимость и компетенция",
-    statuses: ["received"],
-  },
-  {
-    label: "Формирование запроса в ДВГА/КВГА и др",
-    description: "Подготовка и направление запросов, получение ответов",
-    statuses: [
-      "accepted",
-      "forwarded",
-      "requested",
-      "request_approval",
-      "request_approved",
-      "response_ready",
-      "materials",
-    ],
-  },
-  {
-    label: "Заслушивание",
-    description: "Позиции заявителя и органа",
-    statuses: ["hearing", "hearing_ready"],
-  },
-  { label: "Решение", description: "Решение по жалобе", statuses: ["meeting"] },
   {
     label: "Исполнение",
     description: "Направление результата и исполнение",
@@ -143,7 +112,7 @@ export default function ConsiderationProcess({
   onHistory: () => void;
 }) {
   const next = nextAction(c);
-  const stages = c.type === "control" ? CONTROL_STAGES : OBJECTION_STAGES;
+  const stages = OBJECTION_STAGES;
   const currentStatus = c.status === "paused" ? c.resumeStatus : c.status;
   const inRequestFormationStage = stages[1].statuses.includes(
     currentStatus ?? c.status,
@@ -163,8 +132,7 @@ export default function ConsiderationProcess({
       : next
         ? ROLES[next.role]
         : "";
-  const parallelProtocolAvailable =
-    c.type !== "control" && c.status === "commission_voting";
+  const parallelProtocolAvailable = c.status === "commission_voting";
 
   return (
     <section

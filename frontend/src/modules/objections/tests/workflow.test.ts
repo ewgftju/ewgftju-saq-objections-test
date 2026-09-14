@@ -88,11 +88,7 @@ function analysis(h: Harness, partial = false) {
         partial && index === 1 ? "partial" : "accept";
       values[`amount_${point.id}`] = String(point.amount / 2);
     });
-  h.run(
-    h.c.type === "control" ? "control-analysis" : "analysis",
-    h.c.type === "control" ? "higher" : "work",
-    values,
-  );
+  h.run("analysis", "work", values);
 }
 function prepare(h: Harness, partial = false) {
   screen(h);
@@ -371,55 +367,32 @@ test("отчёт: частичный результат требует засл�
   assert.equal(h.c.status, "delivered");
 });
 
-test("профконтроль: отдельная передача, полный анализ, заслушивание обеих сторон", () => {
+test("профконтроль проходит те же этапы, что и возражение на уведомление", () => {
   const h = harness(2);
-  screen(h);
-  h.run("forward", "dvga", {
-    materials: "on",
-    mode: "forward",
-    reason: "Дело передано по компетенции",
-    authority: "Вышестоящий орган (демо)",
-  });
-  analysis(h);
-  h.run("hearing", "higher", {
-    mode: "hold",
-    hearingDate: "2026-09-11",
-    preliminary: "Полная отмена",
-    notified: "on",
-    issuerNotified: "on",
-  });
-  h.run("hearing-held", "higher", {
-    date: "2026-09-11",
-    subject: "Позиция заявителя",
-    issuer: "Позиция органа",
-    note: "Стороны заслушаны",
-    recorded: "on",
-  });
-  assert.throws(
-    () =>
-      h.run("control-decision", "higher", {
-        competence: "on",
-        kind: "reject",
-        reason: "Нет",
-        effect: "Нет",
-        number: "Р-1",
-      }),
-    /противоречит/,
+  prepare(h);
+  const process = renderToStaticMarkup(
+    createElement(ConsiderationProcess, {
+      c: h.c,
+      role: "work",
+      onAction() {},
+      onHistory() {},
+    }),
   );
-  h.run("control-decision", "higher", {
-    competence: "on",
-    kind: "cancel",
-    reason: "Доводы подтверждены",
-    effect: "Акт отменяется",
-    number: "Р-1",
+  assert.match(process, /Формирование запроса в ДВГА\/КВГА и др/);
+  assert.match(process, /Заседание/);
+  assert.match(process, /Решение/);
+  h.run("hearing", "work", {
+    mode: "favorable",
+    reason: "Все доводы удовлетворены",
   });
-  deliver(h, "higher");
+  voteAndSign(h);
+  deliver(h);
   h.run("execute", "dvga", {
     checked: "on",
     note: "Акт отменён в исходном деле",
   });
   assert.equal(h.c.status, "completed");
-  assert.equal(h.c.meeting, null);
+  assert.equal(h.c.meeting?.number, "ПР-1");
 });
 
 test("кворум, отсутствие председательствующего, отвод и равенство голосов", () => {
@@ -543,7 +516,14 @@ test("дополнение и внешний запрос меняют срок�
   assert.equal(h.c.pauseDays, 3);
   assert.equal(h.c.status, "accepted");
   const control = harness(2);
-  assert.throws(() => control.run("supplement", "work"), /недоступно/);
+  screen(control);
+  control.run("supplement", "work", {
+    formal: "on",
+    notified: "on",
+    text: "Дополнительный довод",
+    number: "ДОП-2",
+  });
+  assert.equal(control.c.extensionDays, 15);
 });
 
 test("совместимость сохранения, прямые ссылки и React-разметка всех вкладок", () => {

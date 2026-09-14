@@ -12,13 +12,4 @@ export const STEPS = [
   ["delivered", "Направление результата"],
   ["completed", "Исполнение"],
 ] as const;
-export const CONTROL_STEPS = [
-  ["received", "Поступление"],
-  ["accepted", "Компетенция и регистрация"],
-  ["forwarded", "Передача вышестоящему органу"],
-  ["materials", "Изучение административного дела"],
-  ["hearing", "Заслушивание сторон"],
-  ["decided", "Решение по жалобе"],
-  ["delivered", "Направление результата"],
-  ["completed", "Исполнение"],
-] as const;
+export const CONTROL_STEPS = STEPS;

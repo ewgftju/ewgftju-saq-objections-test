@@ -1,7 +1,7 @@
 import { Button, Notice, PageHeading } from "../../../components/ui";
 import { useState } from "react";
 import { STATUS } from "../../../data/constants";
-import { CONTROL_STEPS, STEPS } from "../../../data/workflowDefinitions";
+import { STEPS } from "../../../data/workflowDefinitions";
 import type { AgendaRegistryEntry, ObjectionCase } from "../../../types";
 import { formatDate } from "../../../utils/dateFormat";
 
@@ -153,7 +153,7 @@ export function ProcessesPage() {
             title: "Акт профилактического контроля",
             deadline:
               "В тестовой модели АППК: подача — 3 месяца, рассмотрение — 20 рабочих дней. Есть специальные правила и исключения.",
-            steps: CONTROL_STEPS,
+            steps: STEPS,
           },
         ].map((process) => (
           <section className="card" key={process.title}>
@@ -245,11 +245,10 @@ export function SessionsPage({
   const pendingAgendaResults = agendas.filter((agenda) => !agenda.resultsHtml).length;
   const visible = cases.filter(
     (c) =>
-      c.type !== "control" &&
-      (c.meeting ||
+      c.meeting ||
         ["documents_review", "commission_members", "commission_voting", "circulated", "hearing", "hearing_ready", "meeting"].includes(
           c.status,
-        )),
+        ),
   );
   const allSelected =
     visible.length > 0 && visible.every((item) => selectedCaseIds.includes(item.id));
