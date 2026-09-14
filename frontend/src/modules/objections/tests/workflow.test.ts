@@ -10,7 +10,11 @@ import {
 } from "../../../api/objectionsRepository";
 import { members } from "../../../data/objections";
 import type { Action, DemoState, Role } from "../../../types";
-import { applyAction, nextAction } from "../services/workflow";
+import {
+  additionalActions,
+  applyAction,
+  nextAction,
+} from "../services/workflow";
 import {
   addMonths,
   filingDeadline,
@@ -134,7 +138,7 @@ function voteAndSign(h: Harness) {
     values[`protocolVote_${point.id}_protocol-member-1`] = "accept";
     values[`protocolVote_${point.id}_protocol-member-2`] = "accept";
   }
-  h.run("vote", "commission", values);
+  h.run("vote", "work", values);
   h.run("sign", "commission", {
     secretary: "on",
     reason: "Итоговая мотивировка",
@@ -631,6 +635,69 @@ test("направленные членам АК материалы сразу �
   assert.match(html, /Ознакомление с документами/);
 });
 
+test("голосование членов АК и формирование протокола доступны параллельно", () => {
+  const h = harness();
+  h.c.status = "commission_voting";
+  h.c.members = [
+    {
+      id: "protocol-member-1",
+      name: "Председатель Апелляционной комиссии: ФИО",
+      present: true,
+      recused: false,
+      reason: "",
+    },
+    {
+      id: "protocol-member-2",
+      name: "Директор ДМБУА: ФИО",
+      present: true,
+      recused: false,
+      reason: "",
+    },
+  ];
+  assert.equal(nextAction(h.c)?.action, "commission-vote");
+  assert.deepEqual(
+    additionalActions(h.c).find((action) => action.action === "vote"),
+    {
+      action: "vote",
+      label: "Сформировать протокол заседания",
+      role: "work",
+    },
+  );
+  const process = renderToStaticMarkup(
+    createElement(ConsiderationProcess, {
+      c: h.c,
+      role: "work",
+      onAction() {},
+      onHistory() {},
+    }),
+  );
+  assert.match(process, /Проголосовать/);
+  assert.match(process, /Сформировать протокол заседания/);
+  assert.match(process, /голосуют параллельно/);
+
+  h.run("vote", "work", {
+    number: "ПР-18",
+    protocolDate: "2026-09-10",
+    protocolMember_1: "Председатель Апелляционной комиссии: ФИО",
+    protocolMember_2: "Директор ДМБУА: ФИО",
+    ...Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .flatMap((point) => [
+          [`protocolVote_${point.id}_protocol-member-1`, "accept"],
+          [`protocolVote_${point.id}_protocol-member-2`, "partial"],
+        ]),
+    ),
+  });
+  assert.equal(h.c.status, "protocol");
+  assert.notEqual(nextAction(h.c)?.action, "commission-vote");
+  assert.ok(
+    !additionalActions(h.c).some(
+      (action) => action.action === "commission-vote",
+    ),
+  );
+});
+
 test("дело открывает процесс, а одно действие передаёт задачу вместе с ролью исполнителя", () => {
   const h = harness();
   const path = pathForRoute({ page: "detail", caseId: h.c.id });
@@ -1017,7 +1084,7 @@ test("протокол формируется с выбранными участ
     ["number", "protocolDate", "secretary", "recommendations"],
   );
   h.c.status = "meeting";
-  h.run("vote", "commission", {
+  h.run("vote", "work", {
     number: "ПР-17",
     protocolDate: "2026-09-10",
     protocolMember_1: "Председатель Апелляционной комиссии: ФИО",

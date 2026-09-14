@@ -228,7 +228,8 @@ export default function ObjectionsModule() {
             onAction={(action, role) => {
               if (
                 action === "choose-commission-members" ||
-                action === "commission-vote"
+                action === "commission-vote" ||
+                action === "vote"
               ) {
                 model.setRole(role);
                 setDialog({ type: "action", action });

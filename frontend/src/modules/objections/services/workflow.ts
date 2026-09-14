@@ -164,7 +164,7 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
     meeting: {
       action: "vote",
       label: "Сформировать протокол заседания",
-      role: "commission",
+      role: "work",
     },
     protocol: {
       action: "sign",
@@ -251,6 +251,12 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
         label: "Отказ в рассмотрении",
         role: "commission",
       });
+      if (c.status === "commission_voting")
+        options.push({
+          action: "vote",
+          label: "Сформировать протокол заседания",
+          role: "work",
+        });
     }
     options.push({
       action: "withdraw",

@@ -149,7 +149,7 @@ export default function ConsiderationProcess({
     currentStatus ?? c.status,
   );
   const availableExtras = additionalActions(c).filter(
-    (option) => option.action !== "upload",
+    (option) => option.action !== "upload" && option.action !== "vote",
   );
   const extras = inRequestFormationStage
     ? availableExtras.filter((option) => option.action === "supplement")
@@ -163,6 +163,8 @@ export default function ConsiderationProcess({
       : next
         ? ROLES[next.role]
         : "";
+  const parallelProtocolAvailable =
+    c.type !== "control" && c.status === "commission_voting";
 
   return (
     <section
@@ -204,6 +206,11 @@ export default function ConsiderationProcess({
             <Button primary onClick={() => onAction(next.action, next.role)}>
               {c.status === "received" ? "Начать рассмотрение" : next.label}
             </Button>
+            {parallelProtocolAvailable && (
+              <Button primary onClick={() => onAction("vote", "work")}>
+                Сформировать протокол заседания
+              </Button>
+            )}
             {c.status === "accepted" && (
               <Button
                 primary
@@ -233,6 +240,8 @@ export default function ConsiderationProcess({
             <small>
               {c.status === "accepted"
                 ? "Сначала сформируйте обязательный запрос в ДВГА/КВГА, затем при необходимости добавьте запрос в другой орган и направьте документы на согласование."
+                : parallelProtocolAvailable
+                  ? "Все выбранные члены АК голосуют параллельно. Исполнитель может сформировать протокол в любой момент; после его сохранения незавершённые задания на голосование будут закрыты."
                 : "Заполните форму и сохраните действие — откроется следующая задача."}
             </small>
           </div>

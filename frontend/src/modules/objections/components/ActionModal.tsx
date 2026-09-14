@@ -637,7 +637,7 @@ export default function ActionModal({
             <div className="request-modal-details">
               <div>
                 <span>Автор</span>
-                <b>Апелляционная комиссия</b>
+                <b>{c.assignee === "Не назначен" ? DEMO_USER.fullName : c.assignee}</b>
               </div>
               <div>
                 <span>Печатная форма</span>
