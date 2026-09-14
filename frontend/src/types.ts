@@ -158,6 +158,16 @@ export interface CaseCertificate {
   memberPositions: CertificateMemberPosition[];
 }
 
+export interface AgendaRegistryEntry {
+  id: string;
+  number: number;
+  meetingDate: string;
+  caseIds: string[];
+  documentHtml: string;
+  resultsHtml?: string;
+  created: string;
+}
+
 export interface HistoryEvent {
   date: string;
   actor: string;
@@ -248,6 +258,7 @@ export interface DemoState {
   version: number;
   date: string;
   cases: ObjectionCase[];
+  agendas: AgendaRegistryEntry[];
 }
 export interface Route {
   page: Page;

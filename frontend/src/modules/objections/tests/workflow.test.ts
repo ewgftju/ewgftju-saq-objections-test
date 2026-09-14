@@ -557,7 +557,8 @@ test("сохранённое до обновления голосование п
     getItem: (key) => storage.get(key) || null,
     setItem: (key, value) => storage.set(key, value),
   }).load();
-  assert.equal(state.version, 2);
+  assert.equal(state.version, 3);
+  assert.deepEqual(state.agendas, []);
   assert.equal(state.cases[0].status, "commission_members");
 });
 
@@ -916,7 +917,8 @@ test("итоги повестки фильтруются по дате и пок
   const html = renderToStaticMarkup(
     createElement(AgendaResultsModal, {
       cases: [h.c],
-      date: "2026-09-24",
+      meetingDate: "2026-09-24",
+      onGenerate() {},
       onClose() {},
     }),
   );
@@ -926,8 +928,9 @@ test("итоги повестки фильтруются по дате и пок
   assert.match(html, /Удовлетворить/);
   const emptyHtml = renderToStaticMarkup(
     createElement(AgendaResultsModal, {
-      cases: [h.c],
-      date: "2026-09-25",
+      cases: [],
+      meetingDate: "2026-09-25",
+      onGenerate() {},
       onClose() {},
     }),
   );

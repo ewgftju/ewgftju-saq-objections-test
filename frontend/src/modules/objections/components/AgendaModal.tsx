@@ -51,7 +51,7 @@ export function AgendaDocument({
   );
 }
 
-function agendaDocumentHtml(cases: ObjectionCase[], meetingDate: string) {
+export function agendaDocumentHtml(cases: ObjectionCase[], meetingDate: string) {
   const content = renderToStaticMarkup(
     <AgendaDocument cases={cases} meetingDate={meetingDate} />,
   );

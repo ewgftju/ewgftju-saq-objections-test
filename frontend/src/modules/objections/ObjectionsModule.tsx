@@ -3,10 +3,14 @@ import AppShell from "../../components/AppShell";
 import { Button, Modal, Notice } from "../../components/ui";
 import { initialState } from "../../api/objectionsRepository";
 import { ROLES } from "../../data/constants";
-import type { Action, CaseDocument, ObjectionCase } from "../../types";
+import type {
+  Action,
+  CaseDocument,
+  ObjectionCase,
+} from "../../types";
 import { caseCsv, downloadFile } from "../../utils/download";
 import ActionModal, { Field } from "./components/ActionModal";
-import AgendaModal from "./components/AgendaModal";
+import AgendaModal, { agendaDocumentHtml } from "./components/AgendaModal";
 import AgendaResultsModal from "./components/AgendaResultsModal";
 import DocumentModal from "./components/DocumentModal";
 import NewCaseModal from "./components/NewCaseModal";
@@ -25,7 +29,7 @@ type DialogState =
   | { type: "action"; action: Action }
   | { type: "document"; kind: string; document?: CaseDocument }
   | { type: "agenda"; cases: ObjectionCase[] }
-  | { type: "agenda-results" }
+  | { type: "agenda-results"; agendaId: string }
   | { type: "new" | "clock" | "reset" | "upload" }
   | null;
 
@@ -41,6 +45,19 @@ export default function ObjectionsModule() {
   };
   const openCase = (c: ObjectionCase) =>
     model.navigate({ page: "detail", caseId: c.id, tab: "review" });
+  const openAgendaCase = (caseId: string) => {
+    const target = model.state.cases.find((item) => item.id === caseId);
+    if (target) openCase(target);
+  };
+  const previewWordDocument = (title: string, html: string) => {
+    const popup = window.open("", "_blank");
+    if (!popup) return;
+    popup.document.title = title;
+    popup.document.write(html);
+    popup.document.close();
+  };
+  const downloadWordDocument = (name: string, html: string) =>
+    downloadFile(name, html, "application/msword;charset=utf-8");
 
   async function upload(file?: File) {
     if (!file || !c) return;
@@ -320,9 +337,34 @@ export default function ObjectionsModule() {
       {model.route.page === "sessions" && (
         <SessionsPage
           cases={model.state.cases}
+          agendas={model.state.agendas}
           onOpen={openCase}
           onAgenda={(cases) => setDialog({ type: "agenda", cases })}
-          onAgendaResults={() => setDialog({ type: "agenda-results" })}
+          onOpenAgendaCase={openAgendaCase}
+          onPreviewAgenda={(agenda) =>
+            previewWordDocument(`Повестка дня №${agenda.number}`, agenda.documentHtml)
+          }
+          onDownloadAgenda={(agenda) =>
+            downloadWordDocument(
+              `Повестка-дня-${agenda.number}.doc`,
+              agenda.documentHtml,
+            )
+          }
+          onGenerateAgendaResults={(agenda) =>
+            setDialog({ type: "agenda-results", agendaId: agenda.id })
+          }
+          onPreviewAgendaResults={(agenda) =>
+            previewWordDocument(
+              `Итоги по повестке дня №${agenda.number}`,
+              agenda.resultsHtml!,
+            )
+          }
+          onDownloadAgendaResults={(agenda) =>
+            downloadWordDocument(
+              `Итоги-по-повестке-${agenda.number}.doc`,
+              agenda.resultsHtml!,
+            )
+          }
         />
       )}
       {model.route.page === "processes" && <ProcessesPage />}
@@ -363,19 +405,46 @@ export default function ObjectionsModule() {
                   text: `Дата заседания: ${meetingDate}`,
                 });
               });
+            const number =
+              Math.max(0, ...next.agendas.map((agenda) => agenda.number)) + 1;
+            next.agendas.push({
+              id: `agenda-${number}`,
+              number,
+              meetingDate,
+              caseIds: dialog.cases.map((item) => item.id),
+              documentHtml: agendaDocumentHtml(dialog.cases, meetingDate),
+              created: next.date,
+            });
             model.commit(next, "Повестка дня направлена членам АК");
             close();
           }}
           onClose={close}
         />
       )}
-      {dialog?.type === "agenda-results" && (
-        <AgendaResultsModal
-          cases={model.state.cases}
-          date={model.state.date}
-          onClose={close}
-        />
-      )}
+      {dialog?.type === "agenda-results" && (() => {
+        const agenda = model.state.agendas.find(
+          (item) => item.id === dialog.agendaId,
+        );
+        if (!agenda) return null;
+        const agendaCases = agenda.caseIds
+          .map((caseId) => model.state.cases.find((item) => item.id === caseId))
+          .filter((item): item is ObjectionCase => Boolean(item));
+        return (
+          <AgendaResultsModal
+            cases={agendaCases}
+            meetingDate={agenda.meetingDate}
+            onGenerate={(html) => {
+              const next = structuredClone(model.state);
+              const target = next.agendas.find((item) => item.id === agenda.id);
+              if (!target) return;
+              target.resultsHtml = html;
+              model.commit(next, "Итоги по повестке дня сформированы");
+              close();
+            }}
+            onClose={close}
+          />
+        );
+      })()}
       {dialog?.type === "new" && (
         <NewCaseModal
           state={model.state}

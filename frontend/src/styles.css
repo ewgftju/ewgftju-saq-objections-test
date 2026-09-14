@@ -328,6 +328,39 @@ small,
   gap: 8px;
   justify-items: stretch;
 }
+.session-tabs {
+  display: flex;
+  gap: 4px;
+  margin: -4px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.session-tabs button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 10px 14px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.session-tabs button.active {
+  border-bottom-color: var(--blue);
+  color: var(--blue);
+}
+.agenda-registry-table td {
+  vertical-align: top;
+}
+.agenda-registry-actions,
+.agenda-case-links {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.agenda-registry-actions .button {
+  min-height: 32px;
+}
 .agenda-results-date {
   margin: -4px 0 14px;
 }

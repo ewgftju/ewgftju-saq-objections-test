@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { Button, Modal, Notice } from "../../../components/ui";
 import type { ObjectionCase } from "../../../types";
 import { formatDate } from "../../../utils/dateFormat";
@@ -34,38 +34,10 @@ function overallResult(c: ObjectionCase) {
         : "Не определён";
 }
 
-export default function AgendaResultsModal({
-  cases,
-  date,
-  onClose,
-}: {
-  cases: ObjectionCase[];
-  date: string;
-  onClose: () => void;
-}) {
-  const [meetingDate, setMeetingDate] = useState(date);
-  const items = cases.filter(
-    (c) =>
-      c.agendaMeetingDate === meetingDate ||
-      (!c.agendaMeetingDate && c.meeting?.date === meetingDate),
-  );
+export function AgendaResultsTable({ cases }: { cases: ObjectionCase[] }) {
   return (
-    <Modal title="Сформировать итоги по повестке дня" onClose={onClose} wide>
-      <label className="field agenda-date-field">
-        <span>Дата заседания</span>
-        <input
-          type="date"
-          value={meetingDate}
-          onChange={(event) => setMeetingDate(event.target.value)}
-          required
-        />
-      </label>
-      {meetingDate && (
-        <p className="muted agenda-results-date">
-          Пункты повестки дня на {formatDate(meetingDate)}
-        </p>
-      )}
-      {items.length ? (
+    <>
+      {cases.length ? (
         <div className="table-scroll">
           <table className="data-table agenda-results-table">
             <thead>
@@ -77,13 +49,16 @@ export default function AgendaResultsModal({
               </tr>
             </thead>
             <tbody>
-              {items.map((c, index) => (
+              {cases.map((c, index) => (
                 <tr key={c.id}>
                   <td>{index + 1}</td>
                   <td>{agendaItemText(c)}</td>
                   <td>
-                    {pointVotes(c).map((summary) => (
-                      <p key={summary} className="agenda-vote-summary">
+                    {pointVotes(c).map((summary, summaryIndex) => (
+                      <p
+                        key={`${c.id}-${summaryIndex}`}
+                        className="agenda-vote-summary"
+                      >
                         {summary}
                       </p>
                     ))}
@@ -95,12 +70,77 @@ export default function AgendaResultsModal({
           </table>
         </div>
       ) : (
-        <Notice>
-          По выбранной дате нет направленных пунктов повестки дня.
-        </Notice>
+        <Notice>По выбранной дате нет направленных пунктов повестки дня.</Notice>
       )}
+    </>
+  );
+}
+
+export function AgendaResultsDocument({
+  cases,
+  meetingDate,
+}: {
+  cases: ObjectionCase[];
+  meetingDate: string;
+}) {
+  return (
+    <article className="print-document agenda-results-document">
+      <h1>Итоги по повестке дня</h1>
+      <p>Дата заседания: {formatDate(meetingDate)}</p>
+      <AgendaResultsTable cases={cases} />
+    </article>
+  );
+}
+
+export function agendaResultsDocumentHtml(
+  cases: ObjectionCase[],
+  meetingDate: string,
+) {
+  const content = renderToStaticMarkup(
+    <AgendaResultsDocument cases={cases} meetingDate={meetingDate} />,
+  );
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Итоги по повестке дня</title><style>
+    @page { size: A4 landscape; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; color: #111; background: #edf3f6; font-family: "Times New Roman", Times, serif; }
+    .agenda-results-document { width: 100%; max-width: 297mm; min-height: 210mm; margin: 0 auto; padding: 18mm; background: #fff; }
+    .agenda-results-document h1 { margin: 0 0 8mm; text-align: center; font-size: 16pt; }
+    .agenda-results-document > p { margin: 0 0 7mm; }
+    table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+    th, td { border: 1px solid #111; padding: 6px; vertical-align: top; text-align: left; }
+    th { text-align: center; }
+    th:first-child, td:first-child { width: 7%; text-align: center; }
+    .agenda-vote-summary { margin: 0 0 5px; }
+    @media print { body { padding: 0; background: #fff; } .agenda-results-document { min-height: 0; padding: 0; } }
+  </style></head><body>${content}</body></html>`;
+}
+
+export default function AgendaResultsModal({
+  cases,
+  meetingDate,
+  onGenerate,
+  onClose,
+}: {
+  cases: ObjectionCase[];
+  meetingDate: string;
+  onGenerate: (html: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Modal title="Сформировать итоги по повестке дня" onClose={onClose} wide>
+      <p className="muted agenda-results-date">
+        Пункты повестки дня на {formatDate(meetingDate)}
+      </p>
+      <AgendaResultsTable cases={cases} />
       <div className="dialog-actions">
         <Button onClick={onClose}>Закрыть</Button>
+        <Button
+          primary
+          disabled={!cases.length}
+          onClick={() => onGenerate(agendaResultsDocumentHtml(cases, meetingDate))}
+        >
+          Сформировать итоги
+        </Button>
       </div>
     </Modal>
   );

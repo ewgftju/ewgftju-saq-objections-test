@@ -2,7 +2,7 @@ import { Button, Notice, PageHeading } from "../../../components/ui";
 import { useState } from "react";
 import { STATUS } from "../../../data/constants";
 import { CONTROL_STEPS, STEPS } from "../../../data/workflowDefinitions";
-import type { ObjectionCase } from "../../../types";
+import type { AgendaRegistryEntry, ObjectionCase } from "../../../types";
 import { formatDate } from "../../../utils/dateFormat";
 
 const sources = [
@@ -219,16 +219,29 @@ export function ProcessesPage() {
 
 export function SessionsPage({
   cases,
+  agendas,
   onOpen,
   onAgenda,
-  onAgendaResults,
+  onOpenAgendaCase,
+  onPreviewAgenda,
+  onDownloadAgenda,
+  onGenerateAgendaResults,
+  onPreviewAgendaResults,
+  onDownloadAgendaResults,
 }: {
   cases: ObjectionCase[];
+  agendas: AgendaRegistryEntry[];
   onOpen: (c: ObjectionCase) => void;
   onAgenda: (cases: ObjectionCase[]) => void;
-  onAgendaResults: () => void;
+  onOpenAgendaCase: (caseId: string) => void;
+  onPreviewAgenda: (agenda: AgendaRegistryEntry) => void;
+  onDownloadAgenda: (agenda: AgendaRegistryEntry) => void;
+  onGenerateAgendaResults: (agenda: AgendaRegistryEntry) => void;
+  onPreviewAgendaResults: (agenda: AgendaRegistryEntry) => void;
+  onDownloadAgendaResults: (agenda: AgendaRegistryEntry) => void;
 }) {
   const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
+  const [section, setSection] = useState<"sessions" | "agendas">("sessions");
   const visible = cases.filter(
     (c) =>
       c.type !== "control" &&
@@ -250,7 +263,7 @@ export function SessionsPage({
       <PageHeading
         title="Заседания комиссии"
         subtitle="Подготовка, голосование и подписанные протоколы"
-        action={
+        action={section === "sessions" ? (
           <div className="session-heading-actions">
             <Button
               primary
@@ -261,20 +274,39 @@ export function SessionsPage({
             >
               Сформировать повестку дня
             </Button>
-            <Button onClick={onAgendaResults}>
-              Сформировать итоги по повестке дня
-            </Button>
           </div>
-        }
+        ) : undefined}
       />
-      <Notice>
-        По Положению заседания проводятся по вторникам и четвергам; допускаются
-        другие дни. При отсутствии председателя и заместителя заседание не
-        проводится. Секретарь не входит в голосующий состав.
-      </Notice>
-      <section className="card">
-        <div className="table-scroll">
-          <table className="registry-table">
+      <div className="session-tabs" role="tablist" aria-label="Разделы заседаний">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={section === "sessions"}
+          className={section === "sessions" ? "active" : ""}
+          onClick={() => setSection("sessions")}
+        >
+          Заседания комиссии
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={section === "agendas"}
+          className={section === "agendas" ? "active" : ""}
+          onClick={() => setSection("agendas")}
+        >
+          Реестр повесток
+        </button>
+      </div>
+      {section === "sessions" ? (
+        <>
+          <Notice>
+            По Положению заседания проводятся по вторникам и четвергам; допускаются
+            другие дни. При отсутствии председателя и заместителя заседание не
+            проводится. Секретарь не входит в голосующий состав.
+          </Notice>
+          <section className="card">
+            <div className="table-scroll">
+              <table className="registry-table">
             <thead>
               <tr>
                 <th>
@@ -337,9 +369,90 @@ export function SessionsPage({
                 </tr>
               )}
             </tbody>
-          </table>
-        </div>
-      </section>
+              </table>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="card">
+          <div className="table-scroll">
+            <table className="registry-table agenda-registry-table">
+              <thead>
+                <tr>
+                  <th>Номер</th>
+                  <th>Дата заседания</th>
+                  <th>Сформированная повестка в Word</th>
+                  <th>Ссылки на карточки обращений</th>
+                  <th>Итоги по повестке</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...agendas]
+                  .sort((a, b) => b.number - a.number)
+                  .map((agenda) => (
+                    <tr key={agenda.id}>
+                      <td>{agenda.number}</td>
+                      <td>{formatDate(agenda.meetingDate)}</td>
+                      <td>
+                        <div className="agenda-registry-actions">
+                          <Button onClick={() => onPreviewAgenda(agenda)}>
+                            Просмотр
+                          </Button>
+                          <Button onClick={() => onDownloadAgenda(agenda)}>
+                            Скачать Word
+                          </Button>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="agenda-case-links">
+                          {agenda.caseIds.map((caseId) => (
+                            <button
+                              key={caseId}
+                              type="button"
+                              className="text-button"
+                              onClick={() => onOpenAgendaCase(caseId)}
+                            >
+                              {caseId}
+                            </button>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        {agenda.resultsHtml ? (
+                          <div className="agenda-registry-actions">
+                            <Button onClick={() => onPreviewAgendaResults(agenda)}>
+                              Просмотр
+                            </Button>
+                            <Button onClick={() => onDownloadAgendaResults(agenda)}>
+                              Скачать Word
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            primary
+                            onClick={() => onGenerateAgendaResults(agenda)}
+                          >
+                            Сформировать итоги по повестке дня
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                {!agendas.length && (
+                  <tr>
+                    <td colSpan={5}>
+                      <div className="empty-state">
+                        <h3>Направленных повесток пока нет</h3>
+                        <p>После направления повестки членам АК она появится в реестре.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </>
   );
 }
