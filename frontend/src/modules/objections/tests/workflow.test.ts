@@ -926,6 +926,34 @@ test("протокол формируется с выбранными участ
   );
   assert.match(protocolHtml, /РЕШЕНИЕ удовлетворить /);
 
+  const changedPreviewHtml = renderToStaticMarkup(
+    createElement(DocumentContent, {
+      c: h.c,
+      kind: "protocol",
+      protocolPreview: {
+        date: "2026-09-10",
+        number: "ПР-17",
+        audio: "",
+        members: h.c.members,
+        votes: Object.fromEntries(
+          h.c.issues
+            .filter((point) => point.disputed)
+            .map((point) => [
+              point.id,
+              {
+                "protocol-member-1": "no",
+                "protocol-member-2": "yes",
+              },
+            ]),
+        ),
+      },
+    }),
+  );
+  assert.match(
+    changedPreviewHtml,
+    /РЕШЕНИЕ об отказе в удовлетворении /,
+  );
+
   const disputedPoints = h.c.issues.filter((point) => point.disputed);
   disputedPoints[0].final = "reject";
   assert.equal(overall(h.c), "partial");

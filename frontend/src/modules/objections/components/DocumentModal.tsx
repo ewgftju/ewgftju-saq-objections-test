@@ -273,7 +273,45 @@ export function DocumentContent({
     const members = protocolPreview?.members || snapshot.members;
     const presentMembers = members.filter((member) => member.present);
     const votes = protocolPreview?.votes || snapshot.votes;
-    const overallResult = overall(snapshot);
+    const hasPreviewVotes = Object.values(protocolPreview?.votes || {}).some(
+      (pointVotes) =>
+        Object.values(pointVotes).some(
+          (vote) => vote === "yes" || vote === "no",
+        ),
+    );
+    const overallResult = hasPreviewVotes
+      ? (() => {
+          const pointResults = snapshot.issues
+            .filter((point) => point.disputed)
+            .map((point) => {
+              const pointVotes = protocolPreview!.votes[point.id] || {};
+              if (
+                !presentMembers.length ||
+                presentMembers.some(
+                  (member) =>
+                    pointVotes[member.id] !== "yes" &&
+                    pointVotes[member.id] !== "no",
+                )
+              )
+                return "";
+              const yes = presentMembers.filter(
+                (member) => pointVotes[member.id] === "yes",
+              ).length;
+              const no = presentMembers.length - yes;
+              return yes > no ||
+                (yes === no && pointVotes[presentMembers[0].id] === "yes")
+                ? "accept"
+                : "reject";
+            });
+          if (!pointResults.length || pointResults.some((item) => !item))
+            return "";
+          return pointResults.every((item) => item === "accept")
+            ? "accept"
+            : pointResults.every((item) => item === "reject")
+              ? "reject"
+              : "partial";
+        })()
+      : overall(snapshot);
     const decision =
       overallResult === "accept"
         ? "удовлетворить"
