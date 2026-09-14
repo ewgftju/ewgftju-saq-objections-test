@@ -44,6 +44,7 @@ export function DocumentContent({
     recommendations?: string;
     members: CommissionMember[];
     votes: Record<string, Record<string, string>>;
+    voteReasons?: Record<string, Record<string, string>>;
   };
 }) {
   const snapshot = document?.snapshot ? { ...c, ...document.snapshot } : c;
@@ -346,7 +347,16 @@ export function DocumentContent({
                             ? "Против"
                             : "—"}
                     </td>
-                    <td>{member.reason || "—"}</td>
+                    <td>
+                      {(
+                        votes?.[point.id] as
+                          | { voteReasons?: Record<string, string> }
+                          | undefined
+                      )?.voteReasons?.[member.id] ||
+                        protocolPreview?.voteReasons?.[point.id]?.[member.id] ||
+                        member.reason ||
+                        "—"}
+                    </td>
                   </tr>
                 )),
               ])}

@@ -522,26 +522,60 @@ export function applyAction(
       break;
     }
     case "commission-vote": {
-      c.votes = {};
+      const voterId = text("commissionMember", "Голосующий член АК");
+      const voter = c.members.find((member) => member.id === voterId);
+      if (!voter) throw new Error("Выберите участника АК из состава заседания");
+      c.votes ||= {};
       for (const point of disputed(c)) {
         const vote = text(`commissionVote_${point.id}`, `Голос по пункту ${point.number}`);
         if (vote !== "yes" && vote !== "no")
           throw new Error("Выберите «За» или «Против» по каждому пункту");
-        c.votes[point.id] = {
-          yes: vote === "yes" ? 1 : 0,
-          no: vote === "no" ? 1 : 0,
-          approved: vote === "yes",
-          chair: "commission",
-          present: 1,
-          eligible: 1,
-          votes: { commission: vote },
+        const result = c.votes[point.id] || {
+          yes: 0,
+          no: 0,
+          approved: false,
+          chair: c.members[0]?.id || voter.id,
+          present: c.members.length,
+          eligible: c.members.length,
+          votes: {},
+          voteReasons: {},
         };
-        point.proposal = vote === "yes" ? "accept" : "reject";
-        point.final = point.proposal;
+        result.votes ||= {};
+        result.voteReasons ||= {};
+        result.votes[voter.id] = vote;
+        result.voteReasons[voter.id] =
+          String(form.get(`commissionReason_${point.id}`) || "").trim();
+        const recordedVotes = c.members.map((member) => result.votes![member.id]);
+        result.yes = recordedVotes.filter((item) => item === "yes").length;
+        result.no = recordedVotes.filter((item) => item === "no").length;
+        result.present = c.members.length;
+        result.eligible = c.members.length;
+        const allVoted = recordedVotes.every(
+          (item) => item === "yes" || item === "no",
+        );
+        result.approved =
+          allVoted &&
+          (result.yes > c.members.length / 2 ||
+            (result.yes === result.no && result.votes[c.members[0]?.id] === "yes"));
+        c.votes[point.id] = result;
+        if (allVoted) {
+          point.proposal = result.approved ? "accept" : "reject";
+          point.final = point.proposal;
+        }
       }
-      c.status = "circulated";
-      title = "Голосование членов АК завершено";
-      note = "Голосование членов апелляционной комиссии по оспариваемым пунктам завершено. Обращение готово к проведению заседания.";
+      const allVotesRecorded = disputed(c).every((point) =>
+        c.members.every((member) => {
+          const vote = c.votes?.[point.id]?.votes?.[member.id];
+          return vote === "yes" || vote === "no";
+        }),
+      );
+      c.status = allVotesRecorded ? "circulated" : "commission_voting";
+      title = allVotesRecorded
+        ? "Голосование членов АК завершено"
+        : `Голос ${voter.name} зафиксирован`;
+      note = allVotesRecorded
+        ? "Все участники АК проголосовали по оспариваемым пунктам. Обращение готово к проведению заседания."
+        : "Ожидаются голоса остальных участников АК по каждому оспариваемому пункту.";
       doc("Голосование членов АК", "commission-vote", note);
       break;
     }
@@ -814,6 +848,14 @@ export function applyAction(
           present: c.members.length,
           eligible: c.members.length,
           votes: memberVotes,
+          voteReasons: Object.fromEntries(
+            c.members.map((member) => [
+              member.id,
+              String(
+                form.get(`protocolReason_${point.id}_${member.id}`) || "",
+              ).trim(),
+            ]),
+          ),
         };
         point.proposal = approved ? "accept" : "reject";
         point.final = point.proposal;

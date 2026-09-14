@@ -71,6 +71,7 @@ export interface VoteResult {
   present: number;
   eligible: number;
   votes?: Record<string, string>;
+  voteReasons?: Record<string, string>;
 }
 
 export interface CaseResult {

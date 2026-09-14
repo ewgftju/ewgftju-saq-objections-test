@@ -162,7 +162,6 @@ function ProtocolParticipantsFields({
   );
 }
 
-
 function ProtocolVotesFields({
   c,
   members,
@@ -189,23 +188,25 @@ function ProtocolVotesFields({
             <tr>
               <th>№</th>
               <th>Описание оспариваемого пункта</th>
-              {members.map((member) => (
-                <th key={member.id}>{member.name}</th>
-              ))}
+              <th>Член АК</th>
+              <th>Голос</th>
+              <th>Обоснование</th>
             </tr>
           </thead>
           <tbody>
-            {disputed(c).map((point) => (
-              <tr key={point.id}>
-                <td>{point.number}</td>
-                <td>{point.title}</td>
-                {members.map((member) => {
-                  const name = `protocolVote_${point.id}_${member.id}`;
-                  return (
-                    <td key={member.id}>
+            {disputed(c).flatMap((point) =>
+              members.map((member, index) => {
+                const voteName = `protocolVote_${point.id}_${member.id}`;
+                const reasonName = `protocolReason_${point.id}_${member.id}`;
+                return (
+                  <tr key={`${point.id}-${member.id}`}>
+                    <td>{index === 0 ? point.number : ""}</td>
+                    <td>{index === 0 ? point.title : ""}</td>
+                    <td>{member.name}</td>
+                    <td>
                       <select
-                        name={name}
-                        defaultValue={values[name] || ""}
+                        name={voteName}
+                        defaultValue={values[voteName] || ""}
                         required
                         aria-label={`Голос ${member.name} по пункту ${point.number}`}
                       >
@@ -214,10 +215,18 @@ function ProtocolVotesFields({
                         <option value="no">Против</option>
                       </select>
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                    <td>
+                      <textarea
+                        name={reasonName}
+                        defaultValue={values[reasonName] || ""}
+                        rows={2}
+                        aria-label={`Обоснование ${member.name} по пункту ${point.number}`}
+                      />
+                    </td>
+                  </tr>
+                );
+              }),
+            )}
           </tbody>
         </table>
       </div>
@@ -238,16 +247,27 @@ export default function ActionModal({
   onSubmit: (form: FormData) => void | Promise<void>;
   onClose: () => void;
 }) {
-  const [values, setValues] = useState<FormValues>(() =>
-    action === "vote"
-      ? Object.fromEntries(
-          c.members.map((member, index) => [
-            `protocolMember_${member.id.replace("protocol-member-", "") || index + 1}`,
-            member.name,
-          ]),
-        )
-      : {},
-  );
+  const [values, setValues] = useState<FormValues>(() => {
+    if (action !== "vote") return {};
+    return Object.fromEntries([
+      ...c.members.map((member, index) => [
+        `protocolMember_${member.id.replace("protocol-member-", "") || index + 1}`,
+        member.name,
+      ]),
+      ...disputed(c).flatMap((point) =>
+        c.members.flatMap((member) => [
+          [
+            `protocolVote_${point.id}_${member.id}`,
+            c.votes?.[point.id]?.votes?.[member.id] || "",
+          ],
+          [
+            `protocolReason_${point.id}_${member.id}`,
+            c.votes?.[point.id]?.voteReasons?.[member.id] || "",
+          ],
+        ]),
+      ),
+    ]);
+  });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [requestTab, setRequestTab] = useState<"form" | "print">("form");
@@ -683,6 +703,17 @@ export default function ActionModal({
                       ),
                     ]),
                   ),
+                  voteReasons: Object.fromEntries(
+                    disputed(c).map((point) => [
+                      point.id,
+                      Object.fromEntries(
+                        protocolMembers.map((member) => [
+                          member.id,
+                          values[`protocolReason_${point.id}_${member.id}`] || "",
+                        ]),
+                      ),
+                    ]),
+                  ),
                 }}
               />
             </div>
@@ -690,6 +721,23 @@ export default function ActionModal({
         ) : action === "commission-vote" ? (
           <>
             {definition.note && <Notice>{definition.note}</Notice>}
+            <label className="field">
+              <span>Голосующий член АК <span className="required">*</span></span>
+              <select name="commissionMember" required defaultValue="">
+                <option value="">Выберите ФИО</option>
+                {c.members
+                  .filter((member) =>
+                    disputed(c).some(
+                      (point) => !c.votes?.[point.id]?.votes?.[member.id],
+                    ),
+                  )
+                  .map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
             <h3 className="form-section">Оспариваемые пункты</h3>
             <div className="table-scroll">
               <table className="data-table">
@@ -698,6 +746,7 @@ export default function ActionModal({
                     <th>№</th>
                     <th>Описание оспариваемого пункта</th>
                     <th>Голос</th>
+                    <th>Обоснование</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -716,6 +765,13 @@ export default function ActionModal({
                           <option value="yes">За</option>
                           <option value="no">Против</option>
                         </select>
+                      </td>
+                      <td>
+                        <textarea
+                          name={`commissionReason_${point.id}`}
+                          rows={2}
+                          aria-label={`Обоснование по пункту ${point.number}`}
+                        />
                       </td>
                     </tr>
                   ))}

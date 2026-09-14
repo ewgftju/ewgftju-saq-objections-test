@@ -791,13 +791,41 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   h.run(
     "commission-vote",
     "commission",
-    Object.fromEntries(
-      h.c.issues
-        .filter((point) => point.disputed)
-        .map((point) => [`commissionVote_${point.id}`, "yes"]),
-    ),
+    {
+      commissionMember: "protocol-member-1",
+      ...Object.fromEntries(
+        h.c.issues
+          .filter((point) => point.disputed)
+          .flatMap((point) => [
+            [`commissionVote_${point.id}`, "yes"],
+            [`commissionReason_${point.id}`, "Обоснование председателя"],
+          ]),
+      ),
+    },
+  );
+  assert.equal(h.c.status, "commission_voting");
+  h.run(
+    "commission-vote",
+    "commission",
+    {
+      commissionMember: "protocol-member-2",
+      ...Object.fromEntries(
+        h.c.issues
+          .filter((point) => point.disputed)
+          .flatMap((point) => [
+            [`commissionVote_${point.id}`, "yes"],
+            [`commissionReason_${point.id}`, "Обоснование члена АК"],
+          ]),
+      ),
+    },
   );
   assert.equal(h.c.status, "circulated");
+  assert.equal(
+    h.c.votes?.[h.c.issues.find((point) => point.disputed)!.id]?.voteReasons?.[
+      "protocol-member-1"
+    ],
+    "Обоснование председателя",
+  );
   h.run("members", "work", { meetingConducted: "on" });
   assert.equal(h.c.status, "meeting");
   const certificate = h.c.documents.find(
@@ -846,7 +874,7 @@ test("повестка дня подставляет реквизиты отме
   assert.match(html, /\(Тестовый исполнитель\)/);
 });
 
-test("протокол формируется с выбранными участниками без полей голосования", () => {
+test("протокол формируется с выбранными участниками и голосами по пунктам", () => {
   const h = harness();
   const definition = actionForm("vote", h.c, "2026-09-10", {});
   assert.deepEqual(
