@@ -1,19 +1,41 @@
 import type {
   ObjectionCase,
   CommissionMember,
+  Outcome,
   VoteResult,
 } from "../../../types";
+
+export function normalizeVoteChoice(value: string | undefined): Outcome | "" {
+  if (value === "yes") return "accept";
+  if (value === "no") return "reject";
+  return ["accept", "partial", "reject", "refuse"].includes(value || "")
+    ? (value as Outcome)
+    : "";
+}
+
+export function pointOutcomeFromVotes(
+  votes: Record<string, string>,
+): Outcome | "" {
+  const choices = Object.values(votes).map(normalizeVoteChoice);
+  if (!choices.length || choices.some((choice) => !choice)) return "";
+  if (choices.every((choice) => choice === choices[0])) return choices[0] || "";
+  return choices.some(
+    (choice) => choice === "accept" || choice === "partial",
+  )
+    ? "partial"
+    : "reject";
+}
+
 export function disputed(c: ObjectionCase) {
   return c.issues.filter((i) => i.disputed);
 }
 export function overall(c: ObjectionCase) {
   const xs = disputed(c).map((i) => i.final || i.proposal);
   if (!xs.length || xs.some((x) => !x)) return "";
-  return xs.every((x) => x === "accept")
-    ? "accept"
-    : xs.every((x) => x === "reject")
-      ? "reject"
-      : "partial";
+  if (xs.every((x) => x === xs[0])) return xs[0] || "";
+  return xs.some((x) => x === "accept" || x === "partial")
+    ? "partial"
+    : "reject";
 }
 export function remainingIssues(c: ObjectionCase) {
   return c.issues.filter(

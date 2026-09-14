@@ -17,7 +17,12 @@ import {
   reviewDeadline,
   reviewDuration,
 } from "../services/deadlines";
-import { evaluateVotes, overall, remainingIssues } from "../services/decisions";
+import {
+  evaluateVotes,
+  overall,
+  pointOutcomeFromVotes,
+  remainingIssues,
+} from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
 import { AgendaDocument } from "../components/AgendaModal";
 import AgendaResultsModal from "../components/AgendaResultsModal";
@@ -125,8 +130,8 @@ function voteAndSign(h: Harness) {
     protocolMember_2: "Директор ДМБУА: ФИО",
   };
   for (const point of h.c.issues.filter((item) => item.disputed)) {
-    values[`protocolVote_${point.id}_protocol-member-1`] = "yes";
-    values[`protocolVote_${point.id}_protocol-member-2`] = "yes";
+    values[`protocolVote_${point.id}_protocol-member-1`] = "accept";
+    values[`protocolVote_${point.id}_protocol-member-2`] = "accept";
   }
   h.run("vote", "commission", values);
   h.run("sign", "commission", {
@@ -466,6 +471,44 @@ test("кворум, отсутствие председательствующе�
   );
 });
 
+test("результаты голосования по пунктам и обращению используют новые варианты", () => {
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "accept", member: "accept" }),
+    "accept",
+  );
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "reject", member: "reject" }),
+    "reject",
+  );
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "partial", member: "partial" }),
+    "partial",
+  );
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "refuse", member: "refuse" }),
+    "refuse",
+  );
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "accept", member: "reject" }),
+    "partial",
+  );
+  assert.equal(
+    pointOutcomeFromVotes({ chair: "partial", member: "refuse" }),
+    "partial",
+  );
+
+  const h = harness();
+  const points = h.c.issues.filter((point) => point.disputed);
+  points.forEach((point) => {
+    point.final = "refuse";
+  });
+  assert.equal(overall(h.c), "refuse");
+  points[0].final = "reject";
+  assert.equal(overall(h.c), "reject");
+  points[0].final = "accept";
+  assert.equal(overall(h.c), "partial");
+});
+
 test("недостаточные данные и неверная роль не меняют исходное состояние", () => {
   const h = harness();
   const original = structuredClone(h.state);
@@ -803,7 +846,7 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
         h.c.issues
           .filter((point) => point.disputed)
           .flatMap((point) => [
-            [`commissionVote_${point.id}`, "yes"],
+            [`commissionVote_${point.id}`, "accept"],
             [`commissionReason_${point.id}`, "Обоснование председателя"],
           ]),
       ),
@@ -819,7 +862,7 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
         h.c.issues
           .filter((point) => point.disputed)
           .flatMap((point) => [
-            [`commissionVote_${point.id}`, "yes"],
+            [`commissionVote_${point.id}`, "accept"],
             [`commissionReason_${point.id}`, "Обоснование члена АК"],
           ]),
       ),
@@ -913,7 +956,7 @@ test("итоги повестки фильтруются по дате и пок
             chair: "chair",
             present: 2,
             eligible: 2,
-            votes: { chair: "yes", member: "no" },
+            votes: { chair: "accept", member: "reject" },
           },
         ];
       }),
@@ -928,7 +971,10 @@ test("итоги повестки фильтруются по дате и пок
   );
   assert.match(html, /Пункт повестки дня/);
   assert.match(html, /Голоса по каждому пункту/);
-  assert.match(html, /Пункт 1: За — Председатель; Против — Член АК/);
+  assert.match(
+    html,
+    /Пункт 1: Удовлетворить — Председатель; Отказать в удовлетворении — Член АК/,
+  );
   assert.match(html, /Удовлетворить/);
   const emptyHtml = renderToStaticMarkup(
     createElement(AgendaResultsModal, {
@@ -958,8 +1004,8 @@ test("протокол формируется с выбранными участ
       h.c.issues
         .filter((point) => point.disputed)
         .flatMap((point) => [
-          [`protocolVote_${point.id}_protocol-member-1`, "yes"],
-          [`protocolVote_${point.id}_protocol-member-2`, "no"],
+          [`protocolVote_${point.id}_protocol-member-1`, "accept"],
+          [`protocolVote_${point.id}_protocol-member-2`, "reject"],
         ]),
     ),
   });
@@ -991,7 +1037,7 @@ test("протокол формируется с выбранными участ
     protocolHtml,
     /Заместитель Председателя Апелляционной комиссии: Директор ДАВГА/,
   );
-  assert.match(protocolHtml, /РЕШЕНИЕ удовлетворить /);
+  assert.match(protocolHtml, /РЕШЕНИЕ частично удовлетворить /);
 
   const changedPreviewHtml = renderToStaticMarkup(
     createElement(DocumentContent, {
@@ -1008,8 +1054,8 @@ test("протокол формируется с выбранными участ
             .map((point) => [
               point.id,
               {
-                "protocol-member-1": "no",
-                "protocol-member-2": "yes",
+                "protocol-member-1": "refuse",
+                "protocol-member-2": "reject",
               },
             ]),
         ),
@@ -1018,7 +1064,7 @@ test("протокол формируется с выбранными участ
   );
   assert.match(
     changedPreviewHtml,
-    /РЕШЕНИЕ об отказе в удовлетворении /,
+    /РЕШЕНИЕ отказать в удовлетворении /,
   );
 
   const disputedPoints = h.c.issues.filter((point) => point.disputed);
@@ -1037,7 +1083,7 @@ test("протокол формируется с выбранными участ
       },
     }),
   );
-  assert.match(partialProtocolHtml, /РЕШЕНИЕ удовлетворить частично /);
+  assert.match(partialProtocolHtml, /РЕШЕНИЕ частично удовлетворить /);
   disputedPoints.forEach((point) => {
     point.final = "reject";
   });
@@ -1057,6 +1103,6 @@ test("протокол формируется с выбранными участ
   );
   assert.match(
     rejectedProtocolHtml,
-    /РЕШЕНИЕ об отказе в удовлетворении /,
+    /РЕШЕНИЕ отказать в удовлетворении /,
   );
 });

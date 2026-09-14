@@ -15,7 +15,13 @@ import {
   reviewDeadline,
   workdaysBetween,
 } from "./deadlines";
-import { disputed, overall, remainingIssues } from "./decisions";
+import {
+  disputed,
+  normalizeVoteChoice,
+  overall,
+  pointOutcomeFromVotes,
+  remainingIssues,
+} from "./decisions";
 
 export const controlDecisions = [
   ["cancel", "Отменить административный акт"],
@@ -529,9 +535,11 @@ export function applyAction(
       if (!voter) throw new Error("Выберите участника АК из состава заседания");
       c.votes ||= {};
       for (const point of disputed(c)) {
-        const vote = text(`commissionVote_${point.id}`, `Голос по пункту ${point.number}`);
-        if (vote !== "yes" && vote !== "no")
-          throw new Error("Выберите «За» или «Против» по каждому пункту");
+        const vote = normalizeVoteChoice(
+          text(`commissionVote_${point.id}`, `Голос по пункту ${point.number}`),
+        );
+        if (!vote)
+          throw new Error("Выберите вариант голоса по каждому пункту");
         const result = c.votes[point.id] || {
           yes: 0,
           no: 0,
@@ -547,28 +555,28 @@ export function applyAction(
         result.votes[voter.id] = vote;
         result.voteReasons[voter.id] =
           String(form.get(`commissionReason_${point.id}`) || "").trim();
-        const recordedVotes = c.members.map((member) => result.votes![member.id]);
-        result.yes = recordedVotes.filter((item) => item === "yes").length;
-        result.no = recordedVotes.filter((item) => item === "no").length;
+        const recordedVotes = c.members.map((member) =>
+          normalizeVoteChoice(result.votes![member.id]),
+        );
+        result.yes = recordedVotes.filter((item) => item === "accept").length;
+        result.no = recordedVotes.filter((item) => item === "reject").length;
         result.present = c.members.length;
         result.eligible = c.members.length;
-        const allVoted = recordedVotes.every(
-          (item) => item === "yes" || item === "no",
-        );
-        result.approved =
-          allVoted &&
-          (result.yes > c.members.length / 2 ||
-            (result.yes === result.no && result.votes[c.members[0]?.id] === "yes"));
+        const allVoted = recordedVotes.every(Boolean);
+        const outcome = allVoted
+          ? pointOutcomeFromVotes(result.votes)
+          : "";
+        result.approved = outcome === "accept";
         c.votes[point.id] = result;
-        if (allVoted) {
-          point.proposal = result.approved ? "accept" : "reject";
-          point.final = point.proposal;
+        if (allVoted && outcome) {
+          point.proposal = outcome;
+          point.final = outcome;
         }
       }
       const allVotesRecorded = disputed(c).every((point) =>
         c.members.every((member) => {
           const vote = c.votes?.[point.id]?.votes?.[member.id];
-          return vote === "yes" || vote === "no";
+          return Boolean(normalizeVoteChoice(vote));
         }),
       );
       c.status = allVotesRecorded ? "circulated" : "commission_voting";
@@ -827,25 +835,28 @@ export function applyAction(
       for (const point of disputed(c)) {
         const memberVotes = Object.fromEntries(
           c.members.map((member) => {
-            const vote = String(
+            const vote = normalizeVoteChoice(String(
               form.get(`protocolVote_${point.id}_${member.id}`) || "",
-            );
-            if (vote !== "yes" && vote !== "no")
+            ));
+            if (!vote)
               throw new Error(
-                "Выберите «За» или «Против» для каждого члена АК по всем пунктам",
+                "Выберите вариант голоса для каждого члена АК по всем пунктам",
               );
             return [member.id, vote];
           }),
         );
-        const yes = Object.values(memberVotes).filter((vote) => vote === "yes").length;
-        const no = c.members.length - yes;
-        const approved =
-          yes > c.members.length / 2 ||
-          (yes === no && memberVotes[c.members[0].id] === "yes");
+        const yes = Object.values(memberVotes).filter(
+          (vote) => vote === "accept",
+        ).length;
+        const no = Object.values(memberVotes).filter(
+          (vote) => vote === "reject",
+        ).length;
+        const outcome = pointOutcomeFromVotes(memberVotes);
+        if (!outcome) throw new Error("Не удалось определить результат голосования");
         c.votes[point.id] = {
           yes,
           no,
-          approved,
+          approved: outcome === "accept",
           chair: c.members[0].id,
           present: c.members.length,
           eligible: c.members.length,
@@ -859,8 +870,8 @@ export function applyAction(
             ]),
           ),
         };
-        point.proposal = approved ? "accept" : "reject";
-        point.final = point.proposal;
+        point.proposal = outcome;
+        point.final = outcome;
       }
       const protocolDate = String(form.get("protocolDate") || date);
       dateObject(protocolDate);

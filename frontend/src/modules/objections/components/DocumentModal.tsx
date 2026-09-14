@@ -16,7 +16,11 @@ import {
 } from "../../../utils/dateFormat";
 import { downloadFile } from "../../../utils/download";
 import { DEMO_USER } from "../../../config";
-import { overall } from "../services/decisions";
+import {
+  normalizeVoteChoice,
+  overall,
+  pointOutcomeFromVotes,
+} from "../services/decisions";
 
 export function DocumentContent({
   c,
@@ -275,9 +279,7 @@ export function DocumentContent({
     const votes = protocolPreview?.votes || snapshot.votes;
     const hasPreviewVotes = Object.values(protocolPreview?.votes || {}).some(
       (pointVotes) =>
-        Object.values(pointVotes).some(
-          (vote) => vote === "yes" || vote === "no",
-        ),
+        Object.values(pointVotes).some((vote) => Boolean(normalizeVoteChoice(vote))),
     );
     const overallResult = hasPreviewVotes
       ? (() => {
@@ -285,41 +287,29 @@ export function DocumentContent({
             .filter((point) => point.disputed)
             .map((point) => {
               const pointVotes = protocolPreview!.votes[point.id] || {};
-              if (
-                !presentMembers.length ||
-                presentMembers.some(
-                  (member) =>
-                    pointVotes[member.id] !== "yes" &&
-                    pointVotes[member.id] !== "no",
-                )
-              )
-                return "";
-              const yes = presentMembers.filter(
-                (member) => pointVotes[member.id] === "yes",
-              ).length;
-              const no = presentMembers.length - yes;
-              return yes > no ||
-                (yes === no && pointVotes[presentMembers[0].id] === "yes")
-                ? "accept"
-                : "reject";
+              if (!presentMembers.length) return "";
+              const normalizedVotes = Object.fromEntries(
+                presentMembers.map((member) => [
+                  member.id,
+                  normalizeVoteChoice(pointVotes[member.id]),
+                ]),
+              );
+              return pointOutcomeFromVotes(normalizedVotes);
             });
           if (!pointResults.length || pointResults.some((item) => !item))
             return "";
-          return pointResults.every((item) => item === "accept")
-            ? "accept"
-            : pointResults.every((item) => item === "reject")
-              ? "reject"
-              : "partial";
+          if (pointResults.every((item) => item === pointResults[0]))
+            return pointResults[0] || "";
+          return pointResults.some(
+            (item) => item === "accept" || item === "partial",
+          )
+            ? "partial"
+            : "reject";
         })()
       : overall(snapshot);
-    const decision =
-      overallResult === "accept"
-        ? "удовлетворить"
-        : overallResult === "reject"
-          ? "об отказе в удовлетворении"
-          : overallResult === "partial"
-            ? "удовлетворить частично"
-            : "—";
+    const decision = overallResult
+      ? OUTCOMES[overallResult].toLocaleLowerCase("ru-RU")
+      : "—";
     return (
       <article className="print-document protocol-template">
         <h1>
@@ -360,7 +350,7 @@ export function DocumentContent({
             <tr>
               <th>№</th>
               <th>Суть вопроса / член Апелляционной комиссии</th>
-              <th>За / против</th>
+              <th>Голос</th>
               <th>Обоснование</th>
             </tr>
           </thead>
@@ -379,13 +369,17 @@ export function DocumentContent({
                     <td>
                       {member.recused
                         ? "Не голосует"
-                        : (votes?.[point.id] as { votes?: Record<string, string> } | undefined)?.votes?.[member.id] === "yes" ||
-                            protocolPreview?.votes?.[point.id]?.[member.id] === "yes"
-                          ? "За"
-                          : (votes?.[point.id] as { votes?: Record<string, string> } | undefined)?.votes?.[member.id] === "no" ||
-                              protocolPreview?.votes?.[point.id]?.[member.id] === "no"
-                            ? "Против"
-                            : "—"}
+                        : (() => {
+                            const vote = normalizeVoteChoice(
+                              protocolPreview?.votes?.[point.id]?.[member.id] ||
+                                (
+                                  votes?.[point.id] as
+                                    | { votes?: Record<string, string> }
+                                    | undefined
+                                )?.votes?.[member.id],
+                            );
+                            return vote ? OUTCOMES[vote] : "—";
+                          })()}
                     </td>
                     <td>
                       {(
@@ -536,11 +530,14 @@ export function DocumentContent({
                           <td>
                             {member.recused
                               ? "Не голосует"
-                              : snapshot.votes?.[point.id]?.votes?.[
-                                    member.id
-                                  ] === "yes"
-                                ? "За"
-                                : "Против"}
+                              : (() => {
+                                  const vote = normalizeVoteChoice(
+                                    snapshot.votes?.[point.id]?.votes?.[
+                                      member.id
+                                    ],
+                                  );
+                                  return vote ? OUTCOMES[vote] : "—";
+                                })()}
                           </td>
                           <td>{member.reason || "—"}</td>
                         </tr>

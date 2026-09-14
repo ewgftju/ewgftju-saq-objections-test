@@ -4,9 +4,10 @@ import type { Action, ObjectionCase } from "../../../types";
 import { Button, Modal, Notice } from "../../../components/ui";
 import { actionForm } from "../formDefinitions";
 import type { FormField, FormValues } from "../formDefinitions";
-import { disputed } from "../services/decisions";
+import { disputed, normalizeVoteChoice } from "../services/decisions";
 import { DocumentContent } from "./DocumentModal";
 import { DEMO_USER } from "../../../config";
+import { OUTCOMES } from "../../../data/constants";
 import { downloadFile } from "../../../utils/download";
 
 const COMMISSION_MEMBER_OPTIONS = [
@@ -211,8 +212,11 @@ function ProtocolVotesFields({
                         aria-label={`Голос ${member.name} по пункту ${point.number}`}
                       >
                         <option value="">Выберите голос</option>
-                        <option value="yes">За</option>
-                        <option value="no">Против</option>
+                        {Object.entries(OUTCOMES).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -258,7 +262,7 @@ export default function ActionModal({
         c.members.flatMap((member) => [
           [
             `protocolVote_${point.id}_${member.id}`,
-            c.votes?.[point.id]?.votes?.[member.id] || "",
+            normalizeVoteChoice(c.votes?.[point.id]?.votes?.[member.id]),
           ],
           [
             `protocolReason_${point.id}_${member.id}`,
@@ -762,8 +766,11 @@ export default function ActionModal({
                           aria-label={`Голос по пункту ${point.number}`}
                         >
                           <option value="">Выберите голос</option>
-                          <option value="yes">За</option>
-                          <option value="no">Против</option>
+                          {Object.entries(OUTCOMES).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
                         </select>
                       </td>
                       <td>

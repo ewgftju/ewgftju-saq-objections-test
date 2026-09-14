@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { Button, Modal, Notice } from "../../../components/ui";
 import type { ObjectionCase } from "../../../types";
+import { OUTCOMES } from "../../../data/constants";
 import { formatDate } from "../../../utils/dateFormat";
-import { overall } from "../services/decisions";
+import { normalizeVoteChoice, overall } from "../services/decisions";
 import { agendaItemText } from "./AgendaModal";
 
 function pointVotes(c: ObjectionCase) {
@@ -12,26 +13,23 @@ function pointVotes(c: ObjectionCase) {
     const result = c.votes?.[point.id];
     if (!result) return `Пункт ${point.number}: голоса не зафиксированы`;
     const votes = result.votes || {};
-    const names = (vote: "yes" | "no") =>
-      c.members
-        .filter((member) => votes[member.id] === vote)
-        .map((member) => member.name)
-        .join(", ");
-    const yes = names("yes") || String(result.yes);
-    const no = names("no") || String(result.no);
-    return `Пункт ${point.number}: За — ${yes}; Против — ${no}`;
+    const summary = Object.entries(OUTCOMES)
+      .map(([value, label]) => {
+        const names = c.members
+          .filter(
+            (member) => normalizeVoteChoice(votes[member.id]) === value,
+          )
+          .map((member) => member.name);
+        return names.length ? `${label} — ${names.join(", ")}` : "";
+      })
+      .filter(Boolean);
+    return `Пункт ${point.number}: ${summary.join("; ") || "голоса не зафиксированы"}`;
   });
 }
 
 function overallResult(c: ObjectionCase) {
   const result = overall(c);
-  return result === "accept"
-    ? "Удовлетворить"
-    : result === "reject"
-      ? "Об отказе в удовлетворении"
-      : result === "partial"
-        ? "Удовлетворить частично"
-        : "Не определён";
+  return result ? OUTCOMES[result] : "Не определён";
 }
 
 export function AgendaResultsTable({ cases }: { cases: ObjectionCase[] }) {

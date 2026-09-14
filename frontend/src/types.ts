@@ -33,7 +33,7 @@ export type CaseStatus =
   | "forwarded"
   | "paused"
   | "court";
-export type Outcome = "accept" | "partial" | "reject";
+export type Outcome = "accept" | "partial" | "reject" | "refuse";
 export type Page = "registry" | "detail" | "sessions" | "processes" | "sources";
 export type CaseTab = "overview" | "review" | "documents" | "history";
 

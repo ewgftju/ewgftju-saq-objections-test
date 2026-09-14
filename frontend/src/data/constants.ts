@@ -41,8 +41,9 @@ export const STATUS = {
 } as const;
 export const OUTCOMES = {
   accept: "Удовлетворить",
-  partial: "Удовлетворить частично",
+  partial: "Частично удовлетворить",
   reject: "Отказать в удовлетворении",
+  refuse: "Отказать в рассмотрении",
 } as const;
 export const CLOSED: readonly string[] = ["completed", "refused", "withdrawn"];
 export const SOURCE_IDS = {
