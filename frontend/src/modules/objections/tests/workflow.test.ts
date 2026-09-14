@@ -26,6 +26,7 @@ import {
 import { DocumentContent } from "../components/DocumentModal";
 import { AgendaDocument } from "../components/AgendaModal";
 import AgendaResultsModal from "../components/AgendaResultsModal";
+import { SessionsPage } from "../pages/ReferencePages";
 import CasesList from "../pages/CasesList";
 import CaseWorkspace from "../pages/CaseWorkspace";
 import ConsiderationProcess from "../components/ConsiderationProcess";
@@ -607,6 +608,27 @@ test("сохранённое до обновления голосование п
   assert.equal(state.version, 3);
   assert.deepEqual(state.agendas, []);
   assert.equal(state.cases[0].status, "commission_members");
+});
+
+test("направленные членам АК материалы сразу появляются в реестре заседаний", () => {
+  const h = harness();
+  h.c.status = "documents_review";
+  const html = renderToStaticMarkup(
+    createElement(SessionsPage, {
+      cases: [h.c],
+      agendas: [],
+      onOpen() {},
+      onAgenda() {},
+      onOpenAgendaCase() {},
+      onPreviewAgenda() {},
+      onDownloadAgenda() {},
+      onGenerateAgendaResults() {},
+      onPreviewAgendaResults() {},
+      onDownloadAgendaResults() {},
+    }),
+  );
+  assert.match(html, new RegExp(h.c.id));
+  assert.match(html, /Ознакомление с документами/);
 });
 
 test("дело открывает процесс, а одно действие передаёт задачу вместе с ролью исполнителя", () => {

@@ -247,7 +247,7 @@ export function SessionsPage({
     (c) =>
       c.type !== "control" &&
       (c.meeting ||
-        ["commission_members", "commission_voting", "circulated", "hearing", "hearing_ready", "meeting"].includes(
+        ["documents_review", "commission_members", "commission_voting", "circulated", "hearing", "hearing_ready", "meeting"].includes(
           c.status,
         )),
   );
