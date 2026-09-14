@@ -20,6 +20,7 @@ import {
 import { evaluateVotes, overall, remainingIssues } from "../services/decisions";
 import { DocumentContent } from "../components/DocumentModal";
 import { AgendaDocument } from "../components/AgendaModal";
+import AgendaResultsModal from "../components/AgendaResultsModal";
 import CasesList from "../pages/CasesList";
 import CaseWorkspace from "../pages/CaseWorkspace";
 import ConsiderationProcess from "../components/ConsiderationProcess";
@@ -872,6 +873,65 @@ test("повестка дня подставляет реквизиты отме
     /ДВГА по Атырауской области от Нарушение, указанное ДВГА/,
   );
   assert.match(html, /\(Тестовый исполнитель\)/);
+});
+
+test("итоги повестки фильтруются по дате и показывают голоса", () => {
+  const h = harness(0);
+  h.c.agendaMeetingDate = "2026-09-24";
+  h.c.members = [
+    {
+      id: "chair",
+      name: "Председатель",
+      present: true,
+      recused: false,
+      reason: "",
+    },
+    {
+      id: "member",
+      name: "Член АК",
+      present: true,
+      recused: false,
+      reason: "",
+    },
+  ];
+  h.c.votes = Object.fromEntries(
+    h.c.issues
+      .filter((point) => point.disputed)
+      .map((point) => {
+        point.final = "accept";
+        return [
+          point.id,
+          {
+            yes: 1,
+            no: 1,
+            approved: true,
+            chair: "chair",
+            present: 2,
+            eligible: 2,
+            votes: { chair: "yes", member: "no" },
+          },
+        ];
+      }),
+  );
+  const html = renderToStaticMarkup(
+    createElement(AgendaResultsModal, {
+      cases: [h.c],
+      date: "2026-09-24",
+      onClose() {},
+    }),
+  );
+  assert.match(html, /Пункт повестки дня/);
+  assert.match(html, /Голоса по каждому пункту/);
+  assert.match(html, /Пункт 1: За — Председатель; Против — Член АК/);
+  assert.match(html, /Удовлетворить/);
+  const emptyHtml = renderToStaticMarkup(
+    createElement(AgendaResultsModal, {
+      cases: [h.c],
+      date: "2026-09-25",
+      onClose() {},
+    }),
+  );
+  assert.match(emptyHtml, /нет направленных пунктов повестки дня/);
 });
 
 test("протокол формируется с выбранными участниками и голосами по пунктам", () => {

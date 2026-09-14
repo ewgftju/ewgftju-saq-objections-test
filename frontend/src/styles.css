@@ -323,6 +323,28 @@ small,
   align-items: center;
   flex-wrap: wrap;
 }
+.session-heading-actions {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+}
+.agenda-results-date {
+  margin: -4px 0 14px;
+}
+.agenda-results-table td:nth-child(1) {
+  width: 48px;
+  text-align: center;
+}
+.agenda-results-table td:nth-child(4) {
+  min-width: 180px;
+  font-weight: 600;
+}
+.agenda-vote-summary {
+  margin: 0 0 7px;
+}
+.agenda-vote-summary:last-child {
+  margin-bottom: 0;
+}
 .button {
   min-height: 38px;
   display: inline-flex;

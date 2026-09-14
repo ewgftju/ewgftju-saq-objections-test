@@ -17,6 +17,15 @@ function authorityFindings(c: ObjectionCase) {
     .join("; ");
 }
 
+export function agendaItemText(c: ObjectionCase) {
+  const appealType = appealTypeParts(c.appealType);
+  return `${appealType.first || "—"} ${c.appealNumber || "—"} от ${formatDate(
+    c.appealDate || c.filed,
+  )} ${c.org || "—"} ${appealType.rest} ${c.issuer || "—"} ${
+    authorityFindings(c) || "—"
+  } (${c.assignee || "—"})`;
+}
+
 export function AgendaDocument({
   cases,
   meetingDate,
@@ -34,17 +43,9 @@ export function AgendaDocument({
         қарастырылатын материалдар тізімі
       </h1>
       <ol>
-        {cases.map((c) => {
-          const appealType = appealTypeParts(c.appealType);
-          return (
-            <li key={c.id}>
-              {appealType.first || "—"} {c.appealNumber || "—"} от{" "}
-              {formatDate(c.appealDate || c.filed)} {c.org || "—"}{" "}
-              {appealType.rest} {c.issuer || "—"}{" "}
-              {authorityFindings(c) || "—"} ({c.assignee || "—"})
-            </li>
-          );
-        })}
+        {cases.map((c) => (
+          <li key={c.id}>{agendaItemText(c)}</li>
+        ))}
       </ol>
     </article>
   );

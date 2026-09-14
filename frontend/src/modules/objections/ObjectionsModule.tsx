@@ -7,6 +7,7 @@ import type { Action, CaseDocument, ObjectionCase } from "../../types";
 import { caseCsv, downloadFile } from "../../utils/download";
 import ActionModal, { Field } from "./components/ActionModal";
 import AgendaModal from "./components/AgendaModal";
+import AgendaResultsModal from "./components/AgendaResultsModal";
 import DocumentModal from "./components/DocumentModal";
 import NewCaseModal from "./components/NewCaseModal";
 import CasesList from "./pages/CasesList";
@@ -24,6 +25,7 @@ type DialogState =
   | { type: "action"; action: Action }
   | { type: "document"; kind: string; document?: CaseDocument }
   | { type: "agenda"; cases: ObjectionCase[] }
+  | { type: "agenda-results" }
   | { type: "new" | "clock" | "reset" | "upload" }
   | null;
 
@@ -320,6 +322,7 @@ export default function ObjectionsModule() {
           cases={model.state.cases}
           onOpen={openCase}
           onAgenda={(cases) => setDialog({ type: "agenda", cases })}
+          onAgendaResults={() => setDialog({ type: "agenda-results" })}
         />
       )}
       {model.route.page === "processes" && <ProcessesPage />}
@@ -351,17 +354,25 @@ export default function ObjectionsModule() {
             const next = structuredClone(model.state);
             next.cases
               .filter((item) => selectedIds.has(item.id))
-              .forEach((item) =>
+              .forEach((item) => {
+                item.agendaMeetingDate = meetingDate;
                 item.history.push({
                   date: next.date,
                   actor: ROLES[model.role],
                   title: "Повестка дня направлена членам АК",
                   text: `Дата заседания: ${meetingDate}`,
-                }),
-              );
+                });
+              });
             model.commit(next, "Повестка дня направлена членам АК");
             close();
           }}
+          onClose={close}
+        />
+      )}
+      {dialog?.type === "agenda-results" && (
+        <AgendaResultsModal
+          cases={model.state.cases}
+          date={model.state.date}
           onClose={close}
         />
       )}

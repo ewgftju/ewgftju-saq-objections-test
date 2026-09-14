@@ -203,6 +203,7 @@ export interface ObjectionCase {
   screening?: string;
   actEffect?: string;
   memberPosition?: string;
+  agendaMeetingDate?: string;
   certificate?: CaseCertificate | null;
   hearing?: Hearing | null;
   meeting?: Meeting | null;

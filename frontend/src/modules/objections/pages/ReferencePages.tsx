@@ -221,10 +221,12 @@ export function SessionsPage({
   cases,
   onOpen,
   onAgenda,
+  onAgendaResults,
 }: {
   cases: ObjectionCase[];
   onOpen: (c: ObjectionCase) => void;
   onAgenda: (cases: ObjectionCase[]) => void;
+  onAgendaResults: () => void;
 }) {
   const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
   const visible = cases.filter(
@@ -249,15 +251,20 @@ export function SessionsPage({
         title="Заседания комиссии"
         subtitle="Подготовка, голосование и подписанные протоколы"
         action={
-          <Button
-            primary
-            disabled={!selectedCaseIds.length}
-            onClick={() =>
-              onAgenda(visible.filter((c) => selectedCaseIds.includes(c.id)))
-            }
-          >
-            Сформировать повестку дня
-          </Button>
+          <div className="session-heading-actions">
+            <Button
+              primary
+              disabled={!selectedCaseIds.length}
+              onClick={() =>
+                onAgenda(visible.filter((c) => selectedCaseIds.includes(c.id)))
+              }
+            >
+              Сформировать повестку дня
+            </Button>
+            <Button onClick={onAgendaResults}>
+              Сформировать итоги по повестке дня
+            </Button>
+          </div>
         }
       />
       <Notice>
