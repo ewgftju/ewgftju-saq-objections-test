@@ -11,6 +11,7 @@ import "./AppShell.css";
 const navigation: { page: Page; label: string }[] = [
   { page: "registry", label: "Реестр возражений" },
   { page: "sessions", label: "Заседания комиссии" },
+  { page: "notifications", label: "Уведомления" },
   { page: "processes", label: "Бизнес-процессы" },
 ];
 
@@ -38,11 +39,14 @@ export default function AppShell({
     return (
       <main className="saq-demo-exit">
         <section>
-          <img src="/saq-logo.png?v=20260909-audit" alt="SAQ" width="72" height="56" />
+          <img
+            src="/saq-logo.png?v=20260909-audit"
+            alt="SAQ"
+            width="72"
+            height="56"
+          />
           <h1>Вы вышли из модуля «Возражения»</h1>
-          <p>
-            Результаты рассмотрения сохранены.
-          </p>
+          <p>Результаты рассмотрения сохранены.</p>
           <div>
             <Button
               primary
@@ -128,11 +132,9 @@ export default function AppShell({
             </label>
             <span className="date-control">Дата учёта: {formatDate(date)}</span>
           </div>
-
         </div>
         {children}
       </main>
     </div>
   );
 }
-

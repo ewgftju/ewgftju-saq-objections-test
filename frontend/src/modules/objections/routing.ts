@@ -14,7 +14,7 @@ export function routeFromPath(path: string): Route {
       return { page: "registry" };
     }
   }
-  if (["sessions", "sources", "processes"].includes(parts[0]))
+  if (["sessions", "notifications", "sources", "processes"].includes(parts[0]))
     return { page: parts[0] as Route["page"] };
   return { page: "registry" };
 }

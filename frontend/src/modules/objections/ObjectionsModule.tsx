@@ -16,6 +16,7 @@ import DocumentModal from "./components/DocumentModal";
 import NewCaseModal from "./components/NewCaseModal";
 import CasesList from "./pages/CasesList";
 import CaseWorkspace from "./pages/CaseWorkspace";
+import NotificationsPage from "./pages/NotificationsPage";
 import {
   ProcessesPage,
   SessionsPage,
@@ -369,6 +370,15 @@ export default function ObjectionsModule() {
               agenda.resultsHtml!,
             )
           }
+        />
+      )}
+      {model.route.page === "notifications" && (
+        <NotificationsPage
+          notifications={model.state.notifications}
+          onOpenCase={(caseId) => {
+            const target = model.state.cases.find((item) => item.id === caseId);
+            if (target) openCase(target);
+          }}
         />
       )}
       {model.route.page === "processes" && <ProcessesPage />}

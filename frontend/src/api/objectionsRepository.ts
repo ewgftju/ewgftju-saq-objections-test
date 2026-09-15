@@ -8,9 +8,9 @@ export interface ObjectionsRepository {
 }
 
 export const STORAGE_KEY = "saq.objections.demo.v1";
-const CURRENT_VERSION = 3;
+const CURRENT_VERSION = 4;
 
-// Version 3 adds the registry of agendas sent to the commission.
+// Version 4 adds automatic notifications for audit objects and applicants.
 
 export function initialState(): DemoState {
   return {
@@ -18,6 +18,7 @@ export function initialState(): DemoState {
     date: "2026-09-08",
     cases: seed(),
     agendas: [],
+    notifications: [],
   };
 }
 
@@ -30,7 +31,7 @@ export function createDemoRepository(
       if (!raw) return initialState();
       const value = JSON.parse(raw) as DemoState;
       if (
-        ![1, 2, CURRENT_VERSION].includes(value.version) ||
+        ![1, 2, 3, CURRENT_VERSION].includes(value.version) ||
         !Array.isArray(value.cases) ||
         typeof value.date !== "string"
       ) {
@@ -42,6 +43,7 @@ export function createDemoRepository(
         ...value,
         version: CURRENT_VERSION,
         agendas: value.agendas || [],
+        notifications: value.notifications || [],
         cases:
           value.version === 1
             ? value.cases.map((c) =>

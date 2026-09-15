@@ -33,6 +33,7 @@ import AgendaResultsModal from "../components/AgendaResultsModal";
 import { SessionsPage } from "../pages/ReferencePages";
 import CasesList from "../pages/CasesList";
 import CaseWorkspace from "../pages/CaseWorkspace";
+import NotificationsPage from "../pages/NotificationsPage";
 import ConsiderationProcess from "../components/ConsiderationProcess";
 import { caseCsv } from "../../../utils/download";
 import { pathForRoute, routeFromPath } from "../routing";
@@ -233,6 +234,8 @@ test("запрос в другой орган использует отдель�
 test("ответ ДВГА доступен после согласования, даже если создан запрос в другой орган", () => {
   const h = harness();
   screen(h);
+  h.c.appealNumber = "ВОЗ-77";
+  h.c.appealDate = "2026-09-08";
   h.run("request", "work", {
     recipient: "ДВГА по Атырауской области",
   });
@@ -245,6 +248,23 @@ test("ответ ДВГА доступен после согласования, 
   assert.equal(nextAction(h.c)?.action, "sign-request");
   h.run("sign-request", "director");
   assert.equal(nextAction(h.c)?.action, "fill-request-response");
+  assert.deepEqual(h.state.notifications, [
+    {
+      id: `notification-${h.c.id}-1`,
+      caseId: h.c.id,
+      recipient: h.c.org,
+      date: h.state.date,
+      text: "По Вашему возражению №ВОЗ-77 от 08.09.2026 направлен запрос о предоставлении необходимых материалов в соответствующие органы. Срок рассмотрения возражения приостанавливается на период до поступления ответа на указанный запрос.",
+    },
+  ]);
+  const notificationsHtml = renderToStaticMarkup(
+    createElement(NotificationsPage, {
+      notifications: h.state.notifications,
+      onOpenCase() {},
+    }),
+  );
+  assert.match(notificationsHtml, /Уведомления/);
+  assert.match(notificationsHtml, /ВОЗ-77 от 08\.09\.2026/);
 });
 
 test("ответ ДВГА сначала фиксируется инициатором", () => {
@@ -593,8 +613,9 @@ test("сохранённое до обновления голосование п
     getItem: (key) => storage.get(key) || null,
     setItem: (key, value) => storage.set(key, value),
   }).load();
-  assert.equal(state.version, 3);
+  assert.equal(state.version, 4);
   assert.deepEqual(state.agendas, []);
+  assert.deepEqual(state.notifications, []);
   assert.equal(state.cases[0].status, "commission_members");
 });
 

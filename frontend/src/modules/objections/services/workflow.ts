@@ -1,5 +1,6 @@
 import { CLOSED, OUTCOMES, ROLES } from "../../../data/constants";
 import { DEMO_USER } from "../../../config";
+import { formatDate } from "../../../utils/dateFormat";
 import type {
   Action,
   ActionOption,
@@ -461,6 +462,13 @@ export function applyAction(
       note = directedToDvgaOrKvga(c)
         ? "Подписанный запрос направлен в кабинет ДВГА/КВГА для подготовки мотивированного ответа."
         : "Подписанный запрос ожидает поступления ответа.";
+      next.notifications.push({
+        id: `notification-${c.id}-${next.notifications.length + 1}`,
+        caseId: c.id,
+        recipient: c.org,
+        date,
+        text: `По Вашему возражению №${c.appealNumber || c.id} от ${formatDate(c.appealDate)} направлен запрос о предоставлении необходимых материалов в соответствующие органы. Срок рассмотрения возражения приостанавливается на период до поступления ответа на указанный запрос.`,
+      });
       break;
     }
     case "approve-certificate": {

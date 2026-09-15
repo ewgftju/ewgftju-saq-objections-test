@@ -102,6 +102,12 @@ export function Icon({ name }: { name: string }) {
         <path d="M5 7h14v14H5zM8 3v6M16 3v6M5 12h14M9 16h2M14 16h2" />
       </>
     ),
+    notifications: (
+      <>
+        <path d="M6 18h12M8 18v-7a4 4 0 0 1 8 0v7M10 21h4" />
+        <path d="M12 3v2" />
+      </>
+    ),
     processes: (
       <>
         <rect x="8" y="2" width="8" height="5" rx="1" />

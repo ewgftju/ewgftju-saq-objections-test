@@ -35,7 +35,13 @@ export type CaseStatus =
   | "paused"
   | "court";
 export type Outcome = "accept" | "partial" | "reject" | "refuse";
-export type Page = "registry" | "detail" | "sessions" | "processes" | "sources";
+export type Page =
+  | "registry"
+  | "detail"
+  | "sessions"
+  | "notifications"
+  | "processes"
+  | "sources";
 export type CaseTab = "overview" | "review" | "documents" | "history";
 
 export interface ViolationPoint {
@@ -169,6 +175,14 @@ export interface AgendaRegistryEntry {
   created: string;
 }
 
+export interface CaseNotification {
+  id: string;
+  caseId: string;
+  recipient: string;
+  text: string;
+  date: string;
+}
+
 export interface HistoryEvent {
   date: string;
   actor: string;
@@ -260,6 +274,7 @@ export interface DemoState {
   date: string;
   cases: ObjectionCase[];
   agendas: AgendaRegistryEntry[];
+  notifications: CaseNotification[];
 }
 export interface Route {
   page: Page;
