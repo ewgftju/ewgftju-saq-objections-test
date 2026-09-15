@@ -98,6 +98,7 @@ function prepare(h: Harness, partial = false) {
   });
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
+  h.run("sign-request", "director");
   h.run(
     "fill-request-response",
     "dvga",
@@ -241,6 +242,8 @@ test("ответ ДВГА доступен после согласования, 
   });
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
+  assert.equal(nextAction(h.c)?.action, "sign-request");
+  h.run("sign-request", "director");
   assert.equal(nextAction(h.c)?.action, "fill-request-response");
 });
 
@@ -254,6 +257,7 @@ test("ответ ДВГА сначала фиксируется инициато
   });
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
+  h.run("sign-request", "director");
   h.run(
     "fill-request-response",
     "dvga",
@@ -813,6 +817,8 @@ test("дело открывает процесс, а одно действие �
   h.run("send-request-approval", "work");
   assert.match(renderToStaticMarkup(process()), /Согласовать запрос/);
   h.run("approve-request", "director", { approved: "on" });
+  assert.match(renderToStaticMarkup(process()), /Подписать запрос/);
+  h.run("sign-request", "director");
   assert.match(renderToStaticMarkup(process()), /Заполнить ответ ДВГА\/КВГА/);
 
   const control = harness(2);
@@ -839,6 +845,7 @@ test("справка выводит доводы ДВГА и ДАВГА в пе�
   });
   h.run("send-request-approval", "work");
   h.run("approve-request", "director", { approved: "on" });
+  h.run("sign-request", "director");
   h.run(
     "fill-request-response",
     "dvga",

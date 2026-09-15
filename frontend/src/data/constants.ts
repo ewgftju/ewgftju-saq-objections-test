@@ -16,6 +16,7 @@ export const STATUS = {
   accepted: "Формирование запроса",
   requested: "Формирование запроса",
   request_approval: "Согласование запроса",
+  request_signed: "Подписание запроса",
   request_approved: "Ожидание ответа на запрос",
   response_ready: "Ожидание ответа на запрос",
   materials: "Формирование справки",

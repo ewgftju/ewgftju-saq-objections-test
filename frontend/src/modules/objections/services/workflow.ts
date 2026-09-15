@@ -87,6 +87,11 @@ export function nextAction(c: ObjectionCase): ActionOption | null {
       label: "Согласовать запрос",
       role: "director",
     },
+    request_signed: {
+      action: "sign-request",
+      label: "Подписать запрос",
+      role: "director",
+    },
     request_approved: pendingDvgaOrKvgaRequest(c)
       ? {
           action: "fill-request-response",
@@ -444,11 +449,18 @@ export function applyAction(
     case "approve-request": {
       checked(form, "approved");
       if (!c.requests.length) throw new Error("Запрос не сформирован");
-      c.status = "request_approved";
+      c.status = "request_signed";
       title = "Запрос согласован";
+      note = "Согласованный запрос ожидает подписи директора ДАВГА.";
+      break;
+    }
+    case "sign-request": {
+      if (!c.requests.length) throw new Error("Запрос не сформирован");
+      c.status = "request_approved";
+      title = "Запрос подписан";
       note = directedToDvgaOrKvga(c)
-        ? "Запрос направлен в кабинет ДВГА/КВГА для подготовки мотивированного ответа."
-        : "Согласованный запрос ожидает поступления ответа.";
+        ? "Подписанный запрос направлен в кабинет ДВГА/КВГА для подготовки мотивированного ответа."
+        : "Подписанный запрос ожидает поступления ответа.";
       break;
     }
     case "approve-certificate": {

@@ -23,6 +23,7 @@ const OBJECTION_STAGES: ProcessStage[] = [
       "forwarded",
       "requested",
       "request_approval",
+      "request_signed",
       "request_approved",
       "response_ready",
       "materials",
@@ -58,6 +59,8 @@ const TASK_HELP: Partial<Record<Action, string>> = {
     "Проверьте сформированные запрос и приложение, затем направьте их директору ДАВГА на согласование.",
   "approve-request":
     "Проверьте сформированные документы и подтвердите согласование запроса.",
+  "sign-request":
+    "Подпишите согласованный запрос. После этого он будет направлен адресату для подготовки ответа.",
   "fill-request-response":
     "Заполните мотивированный ответ по каждому пункту и приложите подтверждающие документы.",
   position:

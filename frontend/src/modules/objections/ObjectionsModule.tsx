@@ -239,6 +239,7 @@ export default function ObjectionsModule() {
                 action === "screen" ||
                 action === "send-request-approval" ||
                 action === "approve-request" ||
+                action === "sign-request" ||
                 action === "approve-certificate" ||
                 action === "sign-certificate" ||
                 action === "send-certificate-to-commission" ||
@@ -300,6 +301,8 @@ export default function ObjectionsModule() {
                     ? "Обращение принято к рассмотрению"
                     : action === "approve-request"
                     ? "Запрос согласован"
+                    : action === "sign-request"
+                      ? "Запрос подписан"
                     : action === "approve-certificate"
                       ? "Справка согласована"
                       : action === "sign-certificate"
