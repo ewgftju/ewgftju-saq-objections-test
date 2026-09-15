@@ -3,7 +3,7 @@ import { Button, PageHeading } from "../../../components/ui";
 import { CLOSED, STATUS, TYPES } from "../../../data/constants";
 import type { ObjectionCase } from "../../../types";
 import { formatDate } from "../../../utils/dateFormat";
-import { reviewDeadline } from "../services/deadlines";
+import { executionDeadline, reviewDeadline } from "../services/deadlines";
 
 export default function CasesList({
   cases,
@@ -123,6 +123,7 @@ export default function CasesList({
                 <th>Объект</th>
                 <th>Предмет обращения</th>
                 <th>Статус</th>
+                <th>Срок исполнения</th>
                 <th>Срок рассмотрения</th>
                 <th />
               </tr>
@@ -141,7 +142,7 @@ export default function CasesList({
                     <span className="subline">БИН {c.bin}</span>
                   </td>
                   <td>
-                    {TYPES[c.type]}
+                    {c.appealType ?? TYPES[c.type]}
                     <span className="subline">№ {c.document.number}</span>
                   </td>
                   <td>
@@ -150,6 +151,24 @@ export default function CasesList({
                     >
                       {STATUS[c.status]}
                     </span>
+                  </td>
+                  <td>
+                    {(() => {
+                      const deadline = executionDeadline(c);
+                      return deadline ? (
+                        <strong
+                          className={
+                            deadline < date && !CLOSED.includes(c.status)
+                              ? "text-danger"
+                              : ""
+                          }
+                        >
+                          {formatDate(deadline)}
+                        </strong>
+                      ) : (
+                        "—"
+                      );
+                    })()}
                   </td>
                   <td>
                     <strong
@@ -171,7 +190,7 @@ export default function CasesList({
               ))}
               {!visible.length && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="empty-state">
                       <h3>Обращения не найдены</h3>
                       <p>Измените строку поиска или фильтры.</p>

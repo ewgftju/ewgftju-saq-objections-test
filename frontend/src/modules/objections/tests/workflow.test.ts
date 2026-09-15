@@ -18,6 +18,7 @@ import {
 import {
   addMonths,
   filingDeadline,
+  executionDeadline,
   reviewDeadline,
   reviewDuration,
 } from "../services/deadlines";
@@ -171,6 +172,11 @@ test("три исходных дела: разные сроки и перено�
     "2026-09-24",
     "2026-10-14",
     "2026-10-12",
+  ]);
+  assert.deepEqual(state.cases.map(executionDeadline), [
+    "2026-09-11",
+    "2026-09-11",
+    "2026-09-11",
   ]);
   assert.equal(
     reviewDuration({ ...state.cases[1], appealType: "Заявление" }),

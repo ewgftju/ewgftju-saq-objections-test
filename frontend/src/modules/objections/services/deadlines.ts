@@ -75,3 +75,9 @@ export function reviewDeadline(c: ObjectionCase) {
   if (c.pauseDays) d = addWorkdays(d, c.pauseDays);
   return d;
 }
+
+/** Deadline for the action currently assigned at a process stage. */
+export function executionDeadline(c: ObjectionCase): string | null {
+  if (c.status === "accepted") return addWorkdays(c.registered, 3);
+  return null;
+}
