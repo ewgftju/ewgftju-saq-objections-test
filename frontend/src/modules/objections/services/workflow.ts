@@ -232,22 +232,12 @@ export function additionalActions(c: ObjectionCase): ActionOption[] {
         label: "Внешний запрос / приостановление",
         role: "work",
       });
-    options.push({
-      action: "refuse",
-      label: "Отказ в рассмотрении",
-      role: "commission",
-    });
     if (c.status === "commission_voting")
       options.push({
         action: "vote",
         label: "Сформировать протокол заседания",
         role: "work",
       });
-    options.push({
-      action: "withdraw",
-      label: "Оставить без рассмотрения",
-      role: "work",
-    });
     if (
       ["circulated", "hearing", "hearing_ready", "meeting"].includes(c.status)
     )

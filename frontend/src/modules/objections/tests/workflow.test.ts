@@ -615,6 +615,16 @@ test("направленные членам АК материалы сразу �
   assert.match(html, /Ознакомление с документами/);
 });
 
+test("в других действиях нет отказа или оставления без рассмотрения", () => {
+  const h = harness();
+  for (const status of ["accepted", "requested", "documents_review"] as const) {
+    h.c.status = status;
+    const actions = additionalActions(h.c).map((action) => action.action);
+    assert.ok(!actions.includes("refuse"));
+    assert.ok(!actions.includes("withdraw"));
+  }
+});
+
 test("голосование членов АК и формирование протокола доступны параллельно", () => {
   const h = harness();
   h.c.status = "commission_voting";
