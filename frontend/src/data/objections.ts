@@ -13,7 +13,7 @@ export function members(): CommissionMember[] {
 export function makeCase(c: NewCaseInput): ObjectionCase {
   return {
     ...c,
-    status: "received",
+    status: "accepted",
     assignee: "Не назначен",
     extensionDays: 0,
     pauseDays: 0,
@@ -24,9 +24,8 @@ export function makeCase(c: NewCaseInput): ObjectionCase {
       {
         date: c.registered,
         actor: "Объект",
-        title:
-          c.type === "control" ? "Жалоба поступила" : "Возражение поступило",
-        text: "Возражение зарегистрировано и передано в рабочий орган.",
+        title: "Обращение создано вручную",
+        text: "Обращение зарегистрировано и сразу направлено на формирование запроса.",
       },
     ],
   };

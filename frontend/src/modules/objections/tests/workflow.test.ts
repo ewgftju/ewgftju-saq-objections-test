@@ -62,6 +62,7 @@ function harness(index = 0) {
 }
 type Harness = ReturnType<typeof harness>;
 function screen(h: Harness) {
+  if (h.c.status !== "received") return;
   h.run("screen", "work", {
     identity: "on",
     document: "on",
@@ -188,7 +189,7 @@ test("три исходных дела: разные сроки и перено�
   );
   assert.equal(addMonths("2026-08-31", 3), "2026-11-30");
   assert.equal(
-    state.cases.every((c) => c.status === "received"),
+    state.cases.every((c) => c.status === "accepted"),
     true,
   );
 });
@@ -543,8 +544,8 @@ test("результаты голосования по пунктам и обр�
 test("недостаточные данные и неверная роль не меняют исходное состояние", () => {
   const h = harness();
   const original = structuredClone(h.state);
-  assert.throws(() => h.run("screen", "dvga"), /недоступно/);
-  assert.throws(() => h.run("screen", "work"), /Подтвердите/);
+  assert.throws(() => h.run("request", "dvga"), /недоступно/);
+  assert.throws(() => h.run("request", "work"), /Кому направить запрос/);
   assert.deepEqual(h.state, original);
 });
 
@@ -642,7 +643,7 @@ test("сохранённое до обновления голосование п
     getItem: (key) => storage.get(key) || null,
     setItem: (key, value) => storage.set(key, value),
   }).load();
-  assert.equal(state.version, 4);
+  assert.equal(state.version, 5);
   assert.deepEqual(state.agendas, []);
   assert.deepEqual(state.notifications, []);
   assert.equal(state.cases[0].status, "commission_members");
@@ -781,10 +782,9 @@ test("дело открывает процесс, а одно действие �
       },
       onHistory() {},
     });
-  assert.match(renderToStaticMarkup(process()), /Начать рассмотрение/);
+  assert.match(renderToStaticMarkup(process()), /Сформировать запрос в ДВГА\/КВГА/);
   primaryAction(process())!();
-  assert.deepEqual(selected, { action: "screen", role: "work" });
-  screen(h);
+  assert.deepEqual(selected, { action: "request", role: "work" });
   assert.match(
     renderToStaticMarkup(process()),
     /Сформировать запрос в ДВГА\/КВГА/,

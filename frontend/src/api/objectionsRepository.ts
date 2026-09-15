@@ -8,9 +8,9 @@ export interface ObjectionsRepository {
 }
 
 export const STORAGE_KEY = "saq.objections.demo.v1";
-const CURRENT_VERSION = 4;
+const CURRENT_VERSION = 5;
 
-// Version 4 adds automatic notifications for audit objects and applicants.
+// Version 5 starts manually created appeals at request formation.
 
 export function initialState(): DemoState {
   return {
@@ -31,7 +31,7 @@ export function createDemoRepository(
       if (!raw) return initialState();
       const value = JSON.parse(raw) as DemoState;
       if (
-        ![1, 2, 3, CURRENT_VERSION].includes(value.version) ||
+        ![1, 2, 3, 4, CURRENT_VERSION].includes(value.version) ||
         !Array.isArray(value.cases) ||
         typeof value.date !== "string"
       ) {
@@ -44,14 +44,15 @@ export function createDemoRepository(
         version: CURRENT_VERSION,
         agendas: value.agendas || [],
         notifications: value.notifications || [],
-        cases:
-          value.version === 1
-            ? value.cases.map((c) =>
-                c.status === "commission_voting"
-                  ? { ...c, status: "commission_members" }
-                  : c,
-              )
-            : value.cases,
+        cases: value.cases.map((c) => {
+          const migrated =
+            value.version === 1 && c.status === "commission_voting"
+              ? { ...c, status: "commission_members" as const }
+              : c;
+          return value.version < 5 && migrated.status === "received"
+            ? { ...migrated, status: "accepted" as const }
+            : migrated;
+        }),
       };
     },
     save(state) {
