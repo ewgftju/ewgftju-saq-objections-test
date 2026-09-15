@@ -150,6 +150,7 @@ export interface CaseRequest {
   template?: "dvga" | "other";
   author?: string;
   customText?: string;
+  sent?: string;
   responded?: string;
   confirmed?: string;
 }
@@ -237,6 +238,7 @@ export interface ObjectionCase {
   result?: CaseResult | null;
   delivery?: Delivery | null;
   pause?: { date: string; recipient: string; text: string } | null;
+  requestPauseStartedAt?: string;
   resumeStatus?: CaseStatus;
   selfReview?: boolean;
   court?: {

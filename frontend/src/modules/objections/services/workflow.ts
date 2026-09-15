@@ -458,6 +458,10 @@ export function applyAction(
     case "sign-request": {
       if (!c.requests.length) throw new Error("Запрос не сформирован");
       c.status = "request_approved";
+      c.requests.forEach((request) => {
+        request.sent ||= date;
+      });
+      c.requestPauseStartedAt ||= date;
       title = "Запрос подписан";
       note = directedToDvgaOrKvga(c)
         ? "Подписанный запрос направлен в кабинет ДВГА/КВГА для подготовки мотивированного ответа."
@@ -632,6 +636,18 @@ export function applyAction(
         request.responded = date;
         request.confirmed = date;
         note = "Получен ответ на направленный запрос.";
+      }
+      const hasPendingResponses =
+        pendingDvgaOrKvgaRequest(c) ||
+        pendingOtherRequest(c) ||
+        pendingAuthorityConfirmation(c);
+      if (!hasPendingResponses && c.requestPauseStartedAt) {
+        const pausedDays = workdaysBetween(c.requestPauseStartedAt, date);
+        if (pausedDays > 0) {
+          c.pauseDays += pausedDays;
+          note += ` Срок рассмотрения продлён на ${pausedDays} раб. дн.`;
+        }
+        c.requestPauseStartedAt = undefined;
       }
       c.status = authorityRequest
         ? "materials"

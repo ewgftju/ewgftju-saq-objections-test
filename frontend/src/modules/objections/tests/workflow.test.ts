@@ -298,6 +298,34 @@ test("ответ ДВГА сначала фиксируется инициато
   assert.equal(h.c.requests[0].confirmed, "2026-09-08");
 });
 
+test("фиксация ответа продлевает срок на период приостановления по запросу", () => {
+  const h = harness();
+  screen(h);
+  h.run("request", "work", { recipient: "КВГА" });
+  h.run("send-request-approval", "work");
+  h.run("approve-request", "director", { approved: "on" });
+  h.run("sign-request", "director");
+  const deadlineBeforePause = reviewDeadline(h.c);
+  h.run(
+    "fill-request-response",
+    "dvga",
+    Object.fromEntries(
+      h.c.issues
+        .filter((point) => point.disputed)
+        .flatMap((point) => [
+          [`authorityFinding_${point.id}`, "Нарушение"],
+          [`authorityResponse_${point.id}`, "Мотивированный ответ"],
+        ]),
+    ),
+  );
+  h.run("position", "work", { date: "2026-09-11" });
+  assert.equal(h.c.pauseDays, 3);
+  assert.equal(reviewDeadline(h.c), "2026-09-29");
+  assert.notEqual(reviewDeadline(h.c), deadlineBeforePause);
+  assert.equal(h.c.requestPauseStartedAt, undefined);
+  assert.match(h.c.history.at(-1)!.text, /продлён на 3 раб\. дн\./);
+});
+
 test("уведомление: сквозной маршрут сохраняет неоспоренный пункт и снимки документов", () => {
   const h = harness();
   prepare(h);
