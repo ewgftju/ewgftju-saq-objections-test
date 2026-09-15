@@ -46,6 +46,16 @@ export default function ObjectionsModule() {
   };
   const openCase = (c: ObjectionCase) =>
     model.navigate({ page: "detail", caseId: c.id, tab: "review" });
+  const openNotifications = () => {
+    if (model.state.notifications.some((notification) => !notification.read)) {
+      const next = structuredClone(model.state);
+      next.notifications.forEach((notification) => {
+        notification.read = true;
+      });
+      model.commit(next, "");
+    }
+    model.navigate({ page: "notifications" });
+  };
   const openAgendaCase = (caseId: string) => {
     const target = model.state.cases.find((item) => item.id === caseId);
     if (target) openCase(target);
@@ -197,8 +207,13 @@ export default function ObjectionsModule() {
       route={model.route}
       date={model.state.date}
       role={model.role}
+      unreadNotifications={model.state.notifications.filter(
+        (notification) => !notification.read,
+      ).length}
       onRoleChange={model.setRole}
-      onNavigate={model.navigate}
+      onNavigate={(next) =>
+        next.page === "notifications" ? openNotifications() : model.navigate(next)
+      }
       onClock={() => setDialog({ type: "clock" })}
       onReset={() => setDialog({ type: "reset" })}
     >

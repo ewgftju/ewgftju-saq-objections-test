@@ -467,6 +467,7 @@ export function applyAction(
         caseId: c.id,
         recipient: c.org,
         date,
+        read: false,
         text: `По Вашему возражению №${c.appealNumber || c.id} от ${formatDate(c.appealDate)} направлен запрос о предоставлении необходимых материалов в соответствующие органы. Срок рассмотрения возражения приостанавливается на период до поступления ответа на указанный запрос.`,
       });
       break;

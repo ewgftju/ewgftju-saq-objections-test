@@ -20,6 +20,7 @@ export default function AppShell({
   route,
   date,
   role,
+  unreadNotifications,
   onRoleChange,
   onNavigate,
 }: {
@@ -27,6 +28,7 @@ export default function AppShell({
   route: Route;
   date: string;
   role: Role;
+  unreadNotifications: number;
   onRoleChange: (role: Role) => void;
   onNavigate: (route: Route) => void;
   onClock: () => void;
@@ -74,6 +76,7 @@ export default function AppShell({
         items={navigation.map(({ page, label }) => ({
           page,
           label,
+          badge: page === "notifications" ? unreadNotifications : undefined,
           active:
             route.page === page ||
             (route.page === "detail" && page === "registry"),

@@ -181,6 +181,7 @@ export interface CaseNotification {
   recipient: string;
   text: string;
   date: string;
+  read: boolean;
 }
 
 export interface HistoryEvent {
